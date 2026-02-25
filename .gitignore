@@ -1,0 +1,45 @@
+# ==========================================
+# Oculus - Global Git Ignore
+# ==========================================
+
+# IDEs & Editores
+.idea/
+.vscode/
+*.iml
+*.iws
+*.swp
+*.swo
+
+# Backend (Java / Spring Boot)
+target/
+*.class
+*.jar
+*.war
+hs_err_pid*
+
+# Frontend (Node / React / Vite)
+node_modules/
+dist/
+dist-ssr/
+.eslintcache
+
+# Logs e historial de pruebas
+*.log
+npm-debug.log*
+
+# Bases de Datos Locales (H2)
+/backend/data/
+*.mv.db
+*.trace.db
+
+# Archivos de Entorno (Se excluyen variables sensibles)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+
+# OS generados
+.DS_Store
+Thumbs.db
