@@ -33,6 +33,16 @@ public class Empleado {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Long usuarioId;
 
+    @Transient
+    private String turnoActual;
+
+    @Transient
+    private String diasTurnoActual;
+
+    @Transient
+    @JsonProperty("biometriaRegistrada")
+    private boolean biometriaRegistrada;
+
     @Column(name = "codigo_empleado", nullable = false, unique = true)
     private String codigoEmpleado;
 

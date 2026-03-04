@@ -30,8 +30,8 @@ const EmpleadoForm: React.FC<EmpleadoFormProps> = ({ empleado, supervisores = []
     };
 
     return (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="glass w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div className="glass w-full sm:max-w-2xl rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom sm:zoom-in duration-300">
                 <div className="p-6 border-b border-slate-700/50 flex items-center justify-between premium-gradient">
                     <div className="flex items-center gap-3 text-white">
                         <div className="bg-white/20 p-2 rounded-xl">
@@ -49,7 +49,7 @@ const EmpleadoForm: React.FC<EmpleadoFormProps> = ({ empleado, supervisores = []
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[80vh] overflow-y-auto">
+                <form onSubmit={handleSubmit} className="p-4 sm:p-8 space-y-5 max-h-[80vh] overflow-y-auto">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Código de Empleado */}
                         <div className="space-y-2">

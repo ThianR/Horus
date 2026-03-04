@@ -14,11 +14,16 @@ public class MockBiometriaService implements BiometriaService {
 
     @Override
     public float[] extraerEmbedding(byte[] imagenBytes) {
-        log.info("Simulando extracción de embedding de imagen ({} bytes)", imagenBytes.length);
-        // Simular un vector de 128 dimensiones (común en modelos como FaceNet)
+        log.info("Extraer embedding determinista para prueba ({} bytes)", imagenBytes.length);
+
+        // Usamos una semilla basada en el tamaño o contenido para que sea
+        // semi-consistente
+        long seed = imagenBytes.length;
+        Random deterministicRandom = new Random(seed);
+
         float[] embedding = new float[128];
         for (int i = 0; i < 128; i++) {
-            embedding[i] = random.nextFloat();
+            embedding[i] = deterministicRandom.nextFloat();
         }
         return embedding;
     }
@@ -45,13 +50,22 @@ public class MockBiometriaService implements BiometriaService {
     public Long identificarEmpleado(float[] objetivo, List<PerfilCandidato> candidatos) {
         log.info("Buscando identidad en {} candidatos...", candidatos.size());
 
+        Long mejorId = null;
+        double maxSim = -1.0;
+
         for (PerfilCandidato candidato : candidatos) {
             double sim = compararEmbeddings(objetivo, candidato.embedding());
-            if (sim > 0.85) { // Umbral de confianza
-                log.info("Empleado identificado: ID={}", candidato.empleadoId());
-                return candidato.empleadoId();
+            if (sim > maxSim) {
+                maxSim = sim;
+                mejorId = candidato.empleadoId();
             }
         }
+
+        if (mejorId != null && maxSim > 0.1) {
+            log.info("Empleado identificado (Mejor coincidencia Mock): ID={} con similitud {}", mejorId, maxSim);
+            return mejorId;
+        }
+
         return null;
     }
 }

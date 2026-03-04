@@ -16,6 +16,7 @@ public class SedeController {
 
     private final SedeRepository sedeRepository;
     private final DispositivoRepository dispositivoRepository;
+    private final com.oculus.asistencia.turnos.repository.TurnoPlantillaRepository turnoRepository;
 
     @GetMapping
     public List<Sede> listarSedes() {
@@ -42,6 +43,26 @@ public class SedeController {
         sede.setId(id);
         Sede updated = sedeRepository.save(sede);
         return ResponseEntity.ok(updated);
+    }
+
+    @PutMapping("/{id}/turno-defecto")
+    public ResponseEntity<Sede> asignarTurnoDefecto(@PathVariable Long id,
+            @RequestBody com.oculus.asistencia.organizacion.dto.AsignarTurnoSedeDto dto) {
+        return sedeRepository.findById(id).map(sede -> {
+            if (dto.getTurnoDefectoId() != null) {
+                com.oculus.asistencia.turnos.model.TurnoPlantilla turno = turnoRepository
+                        .findById(dto.getTurnoDefectoId())
+                        .orElseThrow(() -> new RuntimeException("Turno no encontrado"));
+                sede.setTurnoDefecto(turno);
+                if (dto.getDiasTurnoDefecto() != null) {
+                    sede.setDiasTurnoDefecto(dto.getDiasTurnoDefecto());
+                }
+            } else {
+                sede.setTurnoDefecto(null);
+                sede.setDiasTurnoDefecto(null);
+            }
+            return ResponseEntity.ok(sedeRepository.save(sede));
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")

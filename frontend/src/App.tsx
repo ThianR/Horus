@@ -4,12 +4,14 @@ import DashboardPage from './pages/DashboardPage';
 import KioscoPage from './pages/KioscoPage';
 import EmpleadosPage from './pages/EmpleadosPage';
 import HorariosPage from './pages/HorariosPage';
+import { Toaster } from 'sonner';
 import AdminLayout from './components/layout/AdminLayout';
 import SedesDispositivosPage from './pages/SedesDispositivosPage';
 
 function App() {
     return (
         <BrowserRouter>
+            <Toaster position="top-right" theme="dark" richColors expand closeButton />
             <Routes>
                 <Route path="/login" element={<LoginPage />} />
                 <Route

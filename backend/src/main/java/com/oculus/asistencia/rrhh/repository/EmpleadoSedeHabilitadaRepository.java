@@ -10,5 +10,9 @@ import java.util.List;
 public interface EmpleadoSedeHabilitadaRepository extends JpaRepository<EmpleadoSedeHabilitada, Long> {
     List<EmpleadoSedeHabilitada> findByEmpleado(Empleado empleado);
 
+    @org.springframework.data.jpa.repository.Query("SELECT e FROM EmpleadoSedeHabilitada e WHERE e.empleado.id = :empleadoId AND e.activo = true ORDER BY e.id DESC")
+    java.util.Optional<EmpleadoSedeHabilitada> findFirstByEmpleadoIdAndActivoTrue(
+            @org.springframework.data.repository.query.Param("empleadoId") Long empleadoId);
+
     void deleteByEmpleado(Empleado empleado);
 }

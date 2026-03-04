@@ -51,31 +51,33 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-input {
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: white;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  outline: none;
-  transition: all 0.2s;
-}
+@layer base {
+  input {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.2s;
+  }
 
-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-}
+  input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  }
 
-button {
-  cursor: pointer;
-  border: none;
-  outline: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: transform 0.1s, opacity 0.2s;
-}
+  button {
+    cursor: pointer;
+    border: none;
+    outline: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: transform 0.1s, opacity 0.2s;
+  }
 
-button:active {
-  transform: scale(0.98);
+  button:active {
+    transform: scale(0.98);
+  }
 }

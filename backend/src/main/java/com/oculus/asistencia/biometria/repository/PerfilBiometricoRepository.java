@@ -10,5 +10,7 @@ import java.util.Optional;
 public interface PerfilBiometricoRepository extends JpaRepository<PerfilBiometrico, Long> {
     Optional<PerfilBiometrico> findByEmpleadoId(Long empleadoId);
 
-    void deleteByEmpleadoId(Long empleadoId);
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM PerfilBiometrico p WHERE p.empleado.id = :empleadoId")
+    void deleteByEmpleadoId(@org.springframework.data.repository.query.Param("empleadoId") Long empleadoId);
 }

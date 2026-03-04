@@ -75,7 +75,7 @@ const HorariosPage = () => {
                     <input
                         type="text"
                         placeholder="Buscar por nombre o código..."
-                        className="w-full pl-12 pr-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-xl focus:border-blue-500 transition-all outline-none text-white"
+                        className="w-full pl-12 pr-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-xl focus:border-blue-500 transition-all outline-none text-white !pl-12"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -126,8 +126,8 @@ const HorariosPage = () => {
                                         </td>
                                         <td className="px-4 py-4">
                                             <span className={`px-2 py-1 rounded-md text-xs font-bold ${turno.tipoTurno === 'FIJO' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                    turno.tipoTurno === 'FLEXIBLE' ? 'bg-purple-500/20 text-purple-400' :
-                                                        'bg-amber-500/20 text-amber-400'
+                                                turno.tipoTurno === 'FLEXIBLE' ? 'bg-purple-500/20 text-purple-400' :
+                                                    'bg-amber-500/20 text-amber-400'
                                                 }`}>
                                                 {turno.tipoTurno}
                                             </span>

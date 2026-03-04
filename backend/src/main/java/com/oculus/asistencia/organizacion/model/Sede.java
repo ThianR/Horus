@@ -26,6 +26,14 @@ public class Sede {
     @Column(name = "version_embeddings")
     private Long versionEmbeddings;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "turno_defecto_id")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "segmentos" })
+    private com.oculus.asistencia.turnos.model.TurnoPlantilla turnoDefecto;
+
+    @Column(name = "dias_turno_defecto")
+    private String diasTurnoDefecto = "LUN,MAR,MIE,JUE,VIE";
+
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 }

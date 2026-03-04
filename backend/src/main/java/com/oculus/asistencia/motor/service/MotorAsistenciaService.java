@@ -15,7 +15,6 @@ import com.oculus.asistencia.motor.model.ReglaAsistencia;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -25,6 +24,7 @@ public class MotorAsistenciaService {
 
     private final AsistenciaDiaRepository asistenciaRepository;
     private final AsignacionTurnoRepository asignacionTurnoRepository;
+    private final com.oculus.asistencia.rrhh.repository.EmpleadoSedeHabilitadaRepository empleadoSedeRepo;
     private final ConfiguracionMotorService configuracionService;
 
     /**
@@ -144,9 +144,26 @@ public class MotorAsistenciaService {
     }
 
     private Optional<AsignacionTurno> determinarAsignacionTurno(MarcacionEvento evento) {
-        return asignacionTurnoRepository.findVigentesPorEmpleado(
+        // 1. Nivel Empleado: Asignación Directa (Prioridad Máxima)
+        Optional<AsignacionTurno> directa = asignacionTurnoRepository.findVigentesPorEmpleado(
                 evento.getEmpleado().getId(), evento.getTimestampEvento().toLocalDate())
                 .stream().findFirst();
+
+        if (directa.isPresent()) {
+            return directa;
+        }
+
+        // 2. Nivel Sede: Turno por Defecto
+        return empleadoSedeRepo.findFirstByEmpleadoIdAndActivoTrue(evento.getEmpleado().getId())
+                .map(empleadoSede -> empleadoSede.getSede().getTurnoDefecto())
+                .map(turnoDefecto -> {
+                    log.info("Aplicando Turno por Defecto de Sede para empleado {}", evento.getEmpleado().getId());
+                    AsignacionTurno asignacionVirtual = new AsignacionTurno();
+                    asignacionVirtual.setEmpleado(evento.getEmpleado());
+                    asignacionVirtual.setTurnoPlantilla(turnoDefecto);
+                    asignacionVirtual.setFechaInicio(evento.getTimestampEvento().toLocalDate());
+                    return asignacionVirtual;
+                });
     }
 
     private LocalDate determinarFechaLaboral(MarcacionEvento evento, AsignacionTurno asignacion) {
