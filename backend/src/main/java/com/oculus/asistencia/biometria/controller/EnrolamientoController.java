@@ -36,7 +36,14 @@ public class EnrolamientoController {
         try {
             byte[] bytes = foto.getBytes();
 
-            // 1. Extraer embedding
+            // 1. Validar Calidad de la Imagen
+            BiometriaService.ResultadoValidacion calidad = biometriaService.validarCalidadImagen(bytes);
+            if (!calidad.esValida()) {
+                log.warn("Calidad insuficiente para enrolamiento: {}", calidad.mensaje());
+                return ResponseEntity.badRequest().body("Error de calidad: " + calidad.mensaje());
+            }
+
+            // 2. Extraer embedding
             float[] embedding = biometriaService.extraerEmbedding(bytes);
 
             // 2. Guardar o actualizar perfil

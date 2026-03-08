@@ -35,6 +35,15 @@ public interface BiometriaService {
     boolean verificarLiveness(byte[] imagenBytes);
 
     /**
+     * Valida la calidad de la imagen para asegurar un buen
+     * enrolamiento/reconocimiento.
+     * 
+     * @param imagenBytes Contenido de la imagen.
+     * @return Resultado con puntaje de calidad y mensajes.
+     */
+    ResultadoValidacion validarCalidadImagen(byte[] imagenBytes);
+
+    /**
      * Busca el rostro más cercano en una lista de candidatos.
      * 
      * @param objetivo   Embedding a buscar.
@@ -44,5 +53,8 @@ public interface BiometriaService {
     Long identificarEmpleado(float[] objetivo, List<PerfilCandidato> candidatos);
 
     record PerfilCandidato(Long empleadoId, float[] embedding) {
+    }
+
+    record ResultadoValidacion(boolean esValida, double calidad, String mensaje) {
     }
 }

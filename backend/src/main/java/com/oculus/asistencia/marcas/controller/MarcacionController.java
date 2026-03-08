@@ -1,5 +1,6 @@
 package com.oculus.asistencia.marcas.controller;
 
+import com.oculus.asistencia.biometria.service.BiometriaService;
 import com.oculus.asistencia.marcas.model.MarcacionEvento;
 import com.oculus.asistencia.marcas.repository.MarcacionEventoRepository;
 import com.oculus.asistencia.motor.service.MotorAsistenciaService;
@@ -42,6 +43,11 @@ public class MarcacionController {
 
         try {
             byte[] bytes = foto.getBytes();
+
+            // 0. Validar Calidad (Opcional para identificación, pero útil para log)
+            BiometriaService.ResultadoValidacion checkCalidad = biometriaService.validarCalidadImagen(bytes);
+            log.info("Calidad de imagen para identificación: {} (Valida: {})", checkCalidad.calidad(),
+                    checkCalidad.esValida());
 
             // 1. Extraer características
             float[] embedding = biometriaService.extraerEmbedding(bytes);
@@ -143,6 +149,10 @@ public class MarcacionController {
                 .filter(p -> p.isActivo() && p.getEmbedding() != null)
                 .map(p -> {
                     float[] emb = bytesToFloats(p.getEmbedding());
+                    if (emb.length > 5) {
+                        log.info("Candidato ID {}: Dim={}, Primeros 5: [{}, {}, {}, {}, {}]",
+                                p.getEmpleado().getId(), emb.length, emb[0], emb[1], emb[2], emb[3], emb[4]);
+                    }
                     return new com.oculus.asistencia.biometria.service.BiometriaService.PerfilCandidato(
                             p.getEmpleado().getId(),
                             emb);

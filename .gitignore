@@ -43,3 +43,9 @@ npm-debug.log*
 # OS generados
 .DS_Store
 Thumbs.db
+
+# Python
+python-service/venv/
+__pycache__/
+*.pyc
+.pytest_cache/
