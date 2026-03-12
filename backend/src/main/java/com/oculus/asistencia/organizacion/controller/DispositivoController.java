@@ -16,8 +16,11 @@ public class DispositivoController {
     private final DispositivoRepository dispositivoRepository;
 
     @GetMapping
-    public List<Dispositivo> listarTodos() {
-        return dispositivoRepository.findAll();
+    public List<Dispositivo> listarTodos(@RequestParam(required = false) Long empresaId) {
+        if (empresaId != null) {
+            return dispositivoRepository.findAllByEmpresaId(empresaId);
+        }
+        return java.util.Collections.emptyList();
     }
 
     @GetMapping("/{id}")

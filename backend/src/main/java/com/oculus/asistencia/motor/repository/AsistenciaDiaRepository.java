@@ -4,6 +4,7 @@ import com.oculus.asistencia.motor.model.AsistenciaDia;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -11,14 +12,18 @@ public interface AsistenciaDiaRepository extends JpaRepository<AsistenciaDia, Lo
 
     Optional<AsistenciaDia> findByEmpleadoIdAndFechaLaboral(Long empleadoId, LocalDate fechaLaboral);
 
-    @org.springframework.data.jpa.repository.Query("SELECT COUNT(a) FROM AsistenciaDia a WHERE a.fechaLaboral = :fecha")
-    long countTotalAsistenciasPorFecha(LocalDate fecha);
+    List<AsistenciaDia> findAllByEmpresaId(Long empresaId);
 
-    @org.springframework.data.jpa.repository.Query("SELECT COUNT(a) FROM AsistenciaDia a WHERE a.fechaLaboral = :fecha AND a.horaEntradaReal IS NOT NULL")
-    long countPresentesPorFecha(LocalDate fecha);
+    List<AsistenciaDia> findByFechaLaboralBetween(LocalDate inicio, LocalDate fin);
 
-    @org.springframework.data.jpa.repository.Query("SELECT COUNT(a) FROM AsistenciaDia a WHERE a.fechaLaboral = :fecha AND a.estadoAsistencia = 'TARDANZA'")
-    long countTardanzasPorFecha(LocalDate fecha);
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(a) FROM AsistenciaDia a WHERE a.fechaLaboral = :fecha AND a.empresa.id = :empresaId")
+    long countTotalAsistenciasPorFechaAndEmpresaId(@org.springframework.data.repository.query.Param("fecha") LocalDate fecha, @org.springframework.data.repository.query.Param("empresaId") Long empresaId);
 
-    java.util.List<AsistenciaDia> findAllByFechaLaboralOrderByHoraEntradaRealDesc(LocalDate fecha);
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(a) FROM AsistenciaDia a WHERE a.fechaLaboral = :fecha AND a.horaEntradaReal IS NOT NULL AND a.empresa.id = :empresaId")
+    long countPresentesPorFechaAndEmpresaId(@org.springframework.data.repository.query.Param("fecha") LocalDate fecha, @org.springframework.data.repository.query.Param("empresaId") Long empresaId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(a) FROM AsistenciaDia a WHERE a.fechaLaboral = :fecha AND a.estadoAsistencia = 'TARDANZA' AND a.empresa.id = :empresaId")
+    long countTardanzasPorFechaAndEmpresaId(@org.springframework.data.repository.query.Param("fecha") LocalDate fecha, @org.springframework.data.repository.query.Param("empresaId") Long empresaId);
+
+    java.util.List<AsistenciaDia> findAllByFechaLaboralAndEmpresaIdOrderByHoraEntradaRealDesc(LocalDate fecha, Long empresaId);
 }

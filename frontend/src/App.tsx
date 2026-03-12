@@ -6,31 +6,40 @@ import EmpleadosPage from './pages/EmpleadosPage';
 import HorariosPage from './pages/HorariosPage';
 import { Toaster } from 'sonner';
 import AdminLayout from './components/layout/AdminLayout';
-import SedesDispositivosPage from './pages/SedesDispositivosPage';
+import OrganizacionPage from './pages/OrganizacionPage';
+import WelcomePage from './pages/WelcomePage';
+import ReportesPage from './pages/ReportesPage';
+import ConfiguracionPage from './pages/ConfiguracionPage';
+
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
     return (
         <BrowserRouter>
             <Toaster position="top-right" theme="dark" richColors expand closeButton />
             <Routes>
+                <Route path="/" element={<WelcomePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route
                     path="/admin/*"
                     element={
-                        <AdminLayout>
-                            <Routes>
-                                <Route path="dashboard" element={<DashboardPage />} />
-                                <Route path="empleados" element={<EmpleadosPage />} />
-                                <Route path="horarios" element={<HorariosPage />} />
-                                <Route path="sedes" element={<SedesDispositivosPage />} />
-                                {/* Agregaremos más rutas aquí según el roadmap */}
-                                <Route path="*" element={<Navigate to="dashboard" replace />} />
-                            </Routes>
-                        </AdminLayout>
+                        <ProtectedRoute>
+                            <AdminLayout>
+                                <Routes>
+                                    <Route path="dashboard" element={<DashboardPage />} />
+                                    <Route path="empleados" element={<EmpleadosPage />} />
+                                    <Route path="horarios" element={<HorariosPage />} />
+                                    <Route path="reportes" element={<ReportesPage />} />
+                                    <Route path="organizacion" element={<OrganizacionPage />} />
+                                    <Route path="configuracion" element={<ConfiguracionPage />} />
+                                    <Route path="*" element={<Navigate to="dashboard" replace />} />
+                                </Routes>
+                            </AdminLayout>
+                        </ProtectedRoute>
                     }
                 />
                 <Route path="/kiosco" element={<KioscoPage />} />
-                <Route path="/" element={<Navigate to="/login" replace />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </BrowserRouter>
     );

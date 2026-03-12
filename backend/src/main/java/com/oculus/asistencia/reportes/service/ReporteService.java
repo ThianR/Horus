@@ -6,9 +6,12 @@ import com.lowagie.text.FontFactory;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
+import com.oculus.asistencia.marcas.model.MarcacionEvento;
+import com.oculus.asistencia.marcas.repository.MarcacionEventoRepository;
 import com.oculus.asistencia.motor.model.AsistenciaDia;
 import com.oculus.asistencia.motor.repository.AsistenciaDiaRepository;
 import lombok.RequiredArgsConstructor;
+import java.time.format.DateTimeFormatter;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
@@ -22,9 +25,12 @@ import java.util.List;
 public class ReporteService {
 
     private final AsistenciaDiaRepository asistenciaRepository;
+    private final MarcacionEventoRepository marcacionRepository;
 
-    public byte[] generarExcelAsistencia() throws IOException {
-        List<AsistenciaDia> lista = asistenciaRepository.findAll();
+    private static final DateTimeFormatter ZK_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    public byte[] generarExcelAsistencia(Long empresaId) throws IOException {
+        List<AsistenciaDia> lista = asistenciaRepository.findAllByEmpresaId(empresaId);
 
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Asistencias");
@@ -61,8 +67,8 @@ public class ReporteService {
         }
     }
 
-    public byte[] generarPdfAsistencia() {
-        List<AsistenciaDia> lista = asistenciaRepository.findAll();
+    public byte[] generarPdfAsistencia(Long empresaId) {
+        List<AsistenciaDia> lista = asistenciaRepository.findAllByEmpresaId(empresaId);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         Document document = new Document();
@@ -92,5 +98,33 @@ public class ReporteService {
         document.close();
 
         return out.toByteArray();
+    }
+
+    /**
+     * Genera un archivo de logs transaccionales compatible con ZKTeco / Anviz.
+     * Formato: UserID\tDateTime\tStatus\tVerifyType\tWorkCode
+     */
+    public byte[] generarZktLogs(Long empresaId) {
+        List<MarcacionEvento> eventos = marcacionRepository.findAllByEmpresaId(empresaId);
+        StringBuilder sb = new StringBuilder();
+
+        for (MarcacionEvento e : eventos) {
+            String userId = e.getEmpleado() != null ? e.getEmpleado().getCodigoEmpleado() : "0";
+            String dateTime = e.getTimestampEvento().format(ZK_DATE_FORMAT);
+
+            // Status: 0=Entrada, 1=Salida para la mayoría de sistemas legacy
+            int status = e.getTipoEvento() == MarcacionEvento.TipoEvento.ENTRADA ? 0 : 1;
+
+            // VerifyType: 15 suele representar 'Rostro' en dispositivos ZKTeco iClock/uFace
+            int verifyType = 15;
+
+            // Formato estándar: UserID DateTime Status VerifyType
+            sb.append(userId).append("\t")
+                    .append(dateTime).append("\t")
+                    .append(status).append("\t")
+                    .append(verifyType).append("\r\n");
+        }
+
+        return sb.toString().getBytes();
     }
 }

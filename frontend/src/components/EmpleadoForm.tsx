@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, User, Mail, CreditCard, Shield, Briefcase, Calendar } from 'lucide-react';
+import { X, Save, User, Mail, CreditCard, Shield, Briefcase, Calendar, Building2, MapPin } from 'lucide-react';
 import { Empleado } from '../services/empleadoService';
+import empresaService, { Empresa } from '../services/empresaService';
+import { sedeService, Sede } from '../services/sedeService';
 
 interface EmpleadoFormProps {
     empleado?: Empleado;
@@ -10,6 +12,9 @@ interface EmpleadoFormProps {
 }
 
 const EmpleadoForm: React.FC<EmpleadoFormProps> = ({ empleado, supervisores = [], onSave, onCancel }) => {
+    const [empresas, setEmpresas] = useState<Empresa[]>([]);
+    const [sedes, setSedes] = useState<Sede[]>([]);
+    
     const [formData, setFormData] = useState<Empleado>({
         codigoEmpleado: '',
         nombreCompleto: '',
@@ -19,9 +24,25 @@ const EmpleadoForm: React.FC<EmpleadoFormProps> = ({ empleado, supervisores = []
         ...empleado
     });
 
+    useEffect(() => {
+        empresaService.getAll().then(setEmpresas).catch(console.error);
+    }, []);
+
+    useEffect(() => {
+        if (formData.empresa?.id) {
+            sedeService.getAll(formData.empresa.id).then(setSedes).catch(console.error);
+        } else {
+            setSedes([]);
+        }
+    }, [formData.empresa?.id]);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        if (name === 'empresa.id') {
+            setFormData(prev => ({ ...prev, empresa: { id: Number(value) } }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -126,6 +147,48 @@ const EmpleadoForm: React.FC<EmpleadoFormProps> = ({ empleado, supervisores = []
                                 <option value="ACTIVO">Activo</option>
                                 <option value="INACTIVO">Inactivo</option>
                                 <option value="LICENCIA">Licencia</option>
+                            </select>
+                        </div>
+
+                        {/* Empresa */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-400 flex items-center gap-2">
+                                <Building2 size={16} /> Empresa
+                            </label>
+                            <select
+                                name="empresa.id"
+                                value={formData.empresa?.id || ''}
+                                onChange={handleChange}
+                                required
+                                className="w-full bg-slate-900/80 border border-slate-700/50 text-white p-3 rounded-xl outline-none focus:border-blue-500 transition-all appearance-none"
+                            >
+                                <option value="">Seleccione una Empresa</option>
+                                {empresas.map(emp => (
+                                    <option key={emp.id} value={emp.id}>
+                                        {emp.nombre} ({emp.identificacionFiscal})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Sede */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-400 flex items-center gap-2">
+                                <MapPin size={16} /> Sede
+                            </label>
+                            <select
+                                name="sedeId"
+                                value={formData.sedeId || ''}
+                                onChange={(e) => setFormData(prev => ({ ...prev, sedeId: e.target.value ? Number(e.target.value) : undefined }))}
+                                className="w-full bg-slate-900/80 border border-slate-700/50 text-white p-3 rounded-xl outline-none focus:border-blue-500 transition-all appearance-none"
+                                disabled={!formData.empresa?.id || sedes.length === 0}
+                            >
+                                <option value="">Sin Sede (No Asignado)</option>
+                                {sedes.map(sede => (
+                                    <option key={sede.id} value={sede.id}>
+                                        {sede.nombre}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 

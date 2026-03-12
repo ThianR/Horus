@@ -29,6 +29,9 @@ public class MarcacionController {
     private final MotorAsistenciaService motorService;
     private final com.oculus.asistencia.biometria.repository.PerfilBiometricoRepository perfilRepository;
     private final com.oculus.asistencia.biometria.service.BiometriaService biometriaService;
+    private final com.oculus.asistencia.organizacion.service.EmpresaService empresaService;
+    private final com.oculus.asistencia.organizacion.repository.SedeRepository sedeRepository;
+    private final com.oculus.asistencia.rrhh.repository.EmpleadoSedeHabilitadaRepository sedeHabilitadaRepository;
 
     @PostMapping("/registrar")
     public ResponseEntity<?> registrarMarcacion(@RequestBody MarcacionDto dto) {
@@ -39,7 +42,8 @@ public class MarcacionController {
     @PostMapping("/identificar")
     public ResponseEntity<?> identificarYRegistrar(
             @RequestParam("foto") MultipartFile foto,
-            @RequestParam(value = "tipo", defaultValue = "ENTRADA") MarcacionEvento.TipoEvento tipo) {
+            @RequestParam(value = "tipo", defaultValue = "ENTRADA") MarcacionEvento.TipoEvento tipo,
+            @RequestParam(value = "sedeId", required = false) Long sedeId) {
 
         try {
             byte[] bytes = foto.getBytes();
@@ -52,13 +56,47 @@ public class MarcacionController {
             // 1. Extraer características
             float[] embedding = biometriaService.extraerEmbedding(bytes);
 
-            // 2. Buscar en base de datos (obtener todos los perfiles activos)
-            List<com.oculus.asistencia.biometria.service.BiometriaService.PerfilCandidato> candidatos = obtenerCandidatosReales();
-            log.info("Identificando entre {} perfiles biométricos cargados desde DB", candidatos.size());
+            Long empresaId = empresaService.getEmpresaDefault().getId();
+            com.oculus.asistencia.organizacion.model.Sede sede = null;
+            if (sedeId != null) {
+                sede = sedeRepository.findById(sedeId).orElse(null);
+                if (sede != null) {
+                    empresaId = sede.getEmpresa().getId();
+                }
+            }
 
-            // 3. Identificar
-            Long empleadoId = biometriaService.identificarEmpleado(embedding, candidatos);
-            log.info("Resultado de identificación: {}", empleadoId != null ? "ID " + empleadoId : "NO IDENTIFICADO");
+            // 2. Buscar en base de datos (obtener todos los perfiles activos de la empresa)
+            List<com.oculus.asistencia.biometria.service.BiometriaService.PerfilCandidato> todosCandidatos = obtenerCandidatosPorEmpresa(empresaId);
+            
+            Long empleadoId = null;
+            boolean fueraDeSede = false;
+
+            // 3. Identificar escalonadamente
+            if (sede != null) {
+                // Nivel 1: Sólo de la sede
+                java.util.Set<Long> empleadosEnSede = sedeHabilitadaRepository.findBySedeIdAndActivoTrue(sedeId)
+                        .stream().map(h -> h.getEmpleado().getId()).collect(java.util.stream.Collectors.toSet());
+                        
+                List<com.oculus.asistencia.biometria.service.BiometriaService.PerfilCandidato> candidatosSede = todosCandidatos.stream()
+                        .filter(c -> empleadosEnSede.contains(c.empleadoId())).toList();
+                        
+                log.info("Buscando en Nivel 1 (Sede {}): {} candidatos", sede.getNombre(), candidatosSede.size());
+                empleadoId = biometriaService.identificarEmpleado(embedding, candidatosSede);
+                
+                // Nivel 2: Resto de la empresa
+                if (empleadoId == null) {
+                    List<com.oculus.asistencia.biometria.service.BiometriaService.PerfilCandidato> candidatosResto = todosCandidatos.stream()
+                            .filter(c -> !empleadosEnSede.contains(c.empleadoId())).toList();
+                    log.info("Buscando en Nivel 2 (Extendido a Empresa): {} candidatos", candidatosResto.size());
+                    empleadoId = biometriaService.identificarEmpleado(embedding, candidatosResto);
+                    if (empleadoId != null) {
+                        fueraDeSede = true;
+                    }
+                }
+            } else {
+                log.info("Sede no especificada. Buscando entre {} perfiles", todosCandidatos.size());
+                empleadoId = biometriaService.identificarEmpleado(embedding, todosCandidatos);
+            }
 
             if (empleadoId == null) {
                 return ResponseEntity.status(404)
@@ -71,7 +109,9 @@ public class MarcacionController {
                     empleadoId,
                     LocalDateTime.now(),
                     tipo,
-                    "FACIAL");
+                    "FACIAL",
+                    sedeId,
+                    fueraDeSede);
 
             return procesarRegistro(dto);
 
@@ -116,6 +156,14 @@ public class MarcacionController {
         evento.setEmpleado(empleado);
         evento.setTimestampEvento(dto.timestamp());
         evento.setTipoEvento(dto.tipo());
+        evento.setEmpresa(empleado.getEmpresa());
+        
+        intento.setEmpresa(empleado.getEmpresa());
+
+        if (dto.sedeId() != null) {
+            sedeRepository.findById(dto.sedeId()).ifPresent(evento::setSede);
+        }
+
         evento.setMetodoVerificacion(dto.metodoVerificacion() != null ? dto.metodoVerificacion() : "FACIAL");
         evento.setEstadoProceso(MarcacionEvento.EstadoProceso.PENDIENTE);
 
@@ -132,7 +180,9 @@ public class MarcacionController {
             return ResponseEntity.ok(new MarcacionRespuesta(
                     empleado.getNombreCompleto(),
                     dto.timestamp(),
-                    dto.tipo().name()));
+                    dto.tipo().name(),
+                    dto.fueraDeSede(),
+                    dto.fueraDeSede() ? "Esta sede no es tu asignada principal, cubierta como eventual." : ""));
         } catch (Exception e) {
             log.error("Error procesando marcacion", e);
             evento.setEstadoProceso(MarcacionEvento.EstadoProceso.ERROR);
@@ -144,8 +194,8 @@ public class MarcacionController {
         }
     }
 
-    private List<com.oculus.asistencia.biometria.service.BiometriaService.PerfilCandidato> obtenerCandidatosReales() {
-        return perfilRepository.findAll().stream()
+    private List<com.oculus.asistencia.biometria.service.BiometriaService.PerfilCandidato> obtenerCandidatosPorEmpresa(Long empresaId) {
+        return perfilRepository.findAllByEmpresaId(empresaId).stream()
                 .filter(p -> p.isActivo() && p.getEmbedding() != null)
                 .map(p -> {
                     float[] emb = bytesToFloats(p.getEmbedding());
@@ -168,7 +218,7 @@ public class MarcacionController {
         return floats;
     }
 
-    public record MarcacionRespuesta(String nombreEmpleado, LocalDateTime fecha, String tipo) {
+    public record MarcacionRespuesta(String nombreEmpleado, LocalDateTime fecha, String tipo, boolean fueraDeSede, String mensajeAviso) {
     }
 
     // DTO simple interno
@@ -177,6 +227,8 @@ public class MarcacionController {
             Long empleadoId,
             LocalDateTime timestamp,
             MarcacionEvento.TipoEvento tipo,
-            String metodoVerificacion) {
+            String metodoVerificacion,
+            Long sedeId,
+            boolean fueraDeSede) {
     }
 }

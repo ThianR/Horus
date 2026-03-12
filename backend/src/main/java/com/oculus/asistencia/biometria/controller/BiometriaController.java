@@ -5,6 +5,7 @@ import com.oculus.asistencia.biometria.repository.PerfilBiometricoRepository;
 import com.oculus.asistencia.biometria.service.BiometriaService;
 import com.oculus.asistencia.rrhh.model.Empleado;
 import com.oculus.asistencia.rrhh.repository.EmpleadoRepository;
+import com.oculus.asistencia.biometria.client.BiometriaClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,13 @@ public class BiometriaController {
     private final PerfilBiometricoRepository perfilRepository;
     private final EmpleadoRepository empleadoRepository;
     private final BiometriaService biometriaService;
+    private final BiometriaClient biometriaClient;
+    private final com.oculus.asistencia.organizacion.service.EmpresaService empresaService;
+
+    @GetMapping("/health")
+    public ResponseEntity<?> checkHealth() {
+        return ResponseEntity.ok(biometriaClient.checkHealth());
+    }
 
     @PostMapping("/registrar/{empleadoId}")
     public ResponseEntity<?> registrarRostro(
@@ -48,6 +56,7 @@ public class BiometriaController {
 
             perfil.setEmpleado(empleadoOpt.get());
             perfil.setEmbedding(embeddingBytes);
+            perfil.setEmpresa(empresaService.getEmpresaDefault());
             perfil.setActivo(true);
             perfil.setVersion(perfil.getVersion() + 1);
 

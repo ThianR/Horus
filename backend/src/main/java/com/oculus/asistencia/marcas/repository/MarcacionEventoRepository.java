@@ -19,5 +19,11 @@ public interface MarcacionEventoRepository extends JpaRepository<MarcacionEvento
     @org.springframework.data.jpa.repository.Query(value = "SELECT * FROM marcacion_evento ORDER BY timestamp_evento DESC LIMIT 10", nativeQuery = true)
     List<MarcacionEvento> findUltimasDiez();
 
-    void deleteByEmpleadoId(Long empleadoId);
+    java.util.List<MarcacionEvento> findAllByEmpresaId(Long empresaId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM MarcacionEvento m WHERE m.empleado.id = :empleadoId")
+    void deleteByEmpleadoId(@org.springframework.data.repository.query.Param("empleadoId") Long empleadoId);
+
+    boolean existsByEmpleadoIdAndTimestampEvento(Long empleadoId, java.time.LocalDateTime timestampEvento);
 }

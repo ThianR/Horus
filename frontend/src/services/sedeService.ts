@@ -39,8 +39,8 @@ export interface Dispositivo {
 }
 
 export const sedeService = {
-    getAll: async (): Promise<Sede[]> => {
-        const response = await api.get('/sedes');
+    getAll: async (empresaId?: number): Promise<Sede[]> => {
+        const response = await api.get('/sedes', { params: { empresaId } });
         return response.data;
     },
     getById: async (id: number): Promise<Sede> => {

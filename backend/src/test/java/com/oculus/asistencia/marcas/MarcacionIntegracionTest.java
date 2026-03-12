@@ -67,7 +67,7 @@ public class MarcacionIntegracionTest {
         void testMarcacionExitosa_DebeRegistrarEventoEIntento() throws Exception {
                 String uuid = UUID.randomUUID().toString();
                 MarcacionDto dto = new MarcacionDto(uuid, empleadoTest.getId(), LocalDateTime.now(),
-                                MarcacionEvento.TipoEvento.ENTRADA, "FACIAL");
+                                MarcacionEvento.TipoEvento.ENTRADA, "FACIAL", null, false);
 
                 when(biometriaService.verificarLiveness(any())).thenReturn(true);
 
@@ -93,7 +93,7 @@ public class MarcacionIntegracionTest {
         void testFalloLiveness_DebeRegistrarErrorEnAuditoria() throws Exception {
                 String uuid = UUID.randomUUID().toString();
                 MarcacionDto dto = new MarcacionDto(uuid, empleadoTest.getId(), LocalDateTime.now(),
-                                MarcacionEvento.TipoEvento.ENTRADA, "FACIAL");
+                                MarcacionEvento.TipoEvento.ENTRADA, "FACIAL", null, false);
 
                 when(biometriaService.verificarLiveness(any())).thenReturn(false);
 
@@ -119,7 +119,7 @@ public class MarcacionIntegracionTest {
                 String uuid = UUID.randomUUID().toString();
                 MarcacionDto dto = new MarcacionDto(uuid, 9999L, LocalDateTime.now(),
                                 MarcacionEvento.TipoEvento.ENTRADA,
-                                "PIN");
+                                "PIN", null, false);
 
                 mockMvc.perform(post("/api/marcaciones/registrar")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -139,7 +139,7 @@ public class MarcacionIntegracionTest {
                 // 1. Entrada
                 String uuidEntrada = UUID.randomUUID().toString();
                 MarcacionDto dtoEntrada = new MarcacionDto(uuidEntrada, empleadoTest.getId(),
-                                LocalDateTime.now().minusHours(8), MarcacionEvento.TipoEvento.ENTRADA, "PIN");
+                                LocalDateTime.now().minusHours(8), MarcacionEvento.TipoEvento.ENTRADA, "PIN", null, false);
 
                 mockMvc.perform(post("/api/marcaciones/registrar")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -149,7 +149,7 @@ public class MarcacionIntegracionTest {
                 // 2. Salida
                 String uuidSalida = UUID.randomUUID().toString();
                 MarcacionDto dtoSalida = new MarcacionDto(uuidSalida, empleadoTest.getId(), LocalDateTime.now(),
-                                MarcacionEvento.TipoEvento.SALIDA, "PIN");
+                                MarcacionEvento.TipoEvento.SALIDA, "PIN", null, false);
 
                 mockMvc.perform(post("/api/marcaciones/registrar")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -167,7 +167,7 @@ public class MarcacionIntegracionTest {
         void testIdempotencia_DebeIgnorarDuplicados() throws Exception {
                 String uuid = UUID.randomUUID().toString();
                 MarcacionDto dto = new MarcacionDto(uuid, empleadoTest.getId(), LocalDateTime.now(),
-                                MarcacionEvento.TipoEvento.ENTRADA, "PIN");
+                                MarcacionEvento.TipoEvento.ENTRADA, "PIN", null, false);
 
                 // Primera vez
                 mockMvc.perform(post("/api/marcaciones/registrar")

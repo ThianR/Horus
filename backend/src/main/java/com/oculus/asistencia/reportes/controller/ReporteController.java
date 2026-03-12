@@ -6,9 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
@@ -21,10 +20,47 @@ public class ReporteController {
 
     private final AsistenciaDiaRepository asistenciaRepository;
     private final com.oculus.asistencia.reportes.service.ReporteService reporteService;
+    private final com.oculus.asistencia.reportes.service.ImportacionService importacionService;
+    private final com.oculus.asistencia.organizacion.service.EmpresaService empresaService;
+    private final com.oculus.asistencia.rrhh.repository.EmpleadoRepository empleadoRepository;
+    private final com.oculus.asistencia.marcas.repository.MarcacionEventoRepository marcacionEventoRepository;
+
+    @GetMapping("/seed")
+    public ResponseEntity<String> seedTestData() {
+        var empleadoOpt = empleadoRepository.findAll().stream().findFirst();
+        if (empleadoOpt.isEmpty())
+            return ResponseEntity.badRequest().body("No hay empleados para seed");
+
+        var emp = empleadoOpt.get();
+        java.time.LocalDateTime base = java.time.LocalDateTime.now().minusDays(1).withHour(8).withMinute(0);
+
+        for (int i = 0; i < 5; i++) {
+            com.oculus.asistencia.marcas.model.MarcacionEvento e = new com.oculus.asistencia.marcas.model.MarcacionEvento();
+            e.setUuid(java.util.UUID.randomUUID().toString());
+            e.setEmpleado(emp);
+            e.setTimestampEvento(base.plusDays(i));
+            e.setTipoEvento(com.oculus.asistencia.marcas.model.MarcacionEvento.TipoEvento.ENTRADA);
+            e.setEstadoProceso(com.oculus.asistencia.marcas.model.MarcacionEvento.EstadoProceso.PENDIENTE);
+            e.setMetodoVerificacion("SEED_TEST");
+            marcacionEventoRepository.save(e);
+
+            com.oculus.asistencia.marcas.model.MarcacionEvento s = new com.oculus.asistencia.marcas.model.MarcacionEvento();
+            s.setUuid(java.util.UUID.randomUUID().toString());
+            s.setEmpleado(emp);
+            s.setTimestampEvento(base.plusDays(i).plusHours(9));
+            s.setTipoEvento(com.oculus.asistencia.marcas.model.MarcacionEvento.TipoEvento.SALIDA);
+            s.setEstadoProceso(com.oculus.asistencia.marcas.model.MarcacionEvento.EstadoProceso.PENDIENTE);
+            s.setMetodoVerificacion("SEED_TEST");
+            marcacionEventoRepository.save(s);
+        }
+
+        return ResponseEntity.ok("Datos de prueba generados para: " + emp.getNombreCompleto() + " (Código: "
+                + emp.getCodigoEmpleado() + ")");
+    }
 
     @GetMapping("/asistencia.csv")
     public ResponseEntity<byte[]> exportarAsistenciaCsv() {
-        List<AsistenciaDia> asistencias = asistenciaRepository.findAll();
+        List<AsistenciaDia> asistencias = asistenciaRepository.findAllByEmpresaId(empresaService.getEmpresaDefault().getId());
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (PrintWriter writer = new PrintWriter(out)) {
@@ -51,7 +87,7 @@ public class ReporteController {
 
     @GetMapping("/asistencia.xlsx")
     public ResponseEntity<byte[]> exportarAsistenciaExcel() throws java.io.IOException {
-        byte[] data = reporteService.generarExcelAsistencia();
+        byte[] data = reporteService.generarExcelAsistencia(empresaService.getEmpresaDefault().getId());
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=asistencia.xlsx")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
@@ -60,10 +96,25 @@ public class ReporteController {
 
     @GetMapping("/asistencia.pdf")
     public ResponseEntity<byte[]> exportarAsistenciaPdf() {
-        byte[] data = reporteService.generarPdfAsistencia();
+        byte[] data = reporteService.generarPdfAsistencia(empresaService.getEmpresaDefault().getId());
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=asistencia.pdf")
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(data);
+    }
+
+    @GetMapping("/asistencia.dat")
+    public ResponseEntity<byte[]> exportarAsistenciaZkt() {
+        byte[] data = reporteService.generarZktLogs(empresaService.getEmpresaDefault().getId());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=GLOG_001.dat")
+                .contentType(MediaType.TEXT_PLAIN)
+                .body(data);
+    }
+
+    @PostMapping("/importar")
+    public ResponseEntity<String> importarLogs(@RequestParam("file") MultipartFile file) throws java.io.IOException {
+        int procesados = importacionService.importarDesdeArchivoZkt(file.getInputStream(), empresaService.getEmpresaDefault());
+        return ResponseEntity.ok("Importación finalizada. Registros procesados: " + procesados);
     }
 }

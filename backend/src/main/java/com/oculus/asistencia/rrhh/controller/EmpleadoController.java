@@ -6,6 +6,7 @@ import com.oculus.asistencia.rrhh.repository.EmpleadoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.oculus.asistencia.rrhh.dto.AsignacionMasivaDto;
 import com.oculus.asistencia.turnos.model.AsignacionTurno;
@@ -22,17 +23,20 @@ public class EmpleadoController {
     private final EmpleadoRepository empleadoRepository;
     private final UsuarioRepository usuarioRepository;
     private final com.oculus.asistencia.rrhh.repository.EmpleadoSedeHabilitadaRepository sedeHabilitadaRepository;
+    private final com.oculus.asistencia.reportes.service.ImportacionMasivaService importacionMasivaService;
+    private final com.oculus.asistencia.organizacion.service.EmpresaService empresaService;
     private final com.oculus.asistencia.turnos.repository.AsignacionTurnoRepository asignacionTurnoRepository;
     private final com.oculus.asistencia.turnos.repository.TurnoPlantillaRepository turnoPlantillaRepository;
     private final com.oculus.asistencia.biometria.repository.PerfilBiometricoRepository perfilBiometricoRepository;
     private final com.oculus.asistencia.marcas.repository.MarcacionEventoRepository marcacionEventoRepository;
+    private final com.oculus.asistencia.organizacion.repository.SedeRepository sedeRepository;
 
     @GetMapping
     public ResponseEntity<List<Empleado>> listarTodos() {
-        List<Empleado> empleados = empleadoRepository.findAll();
+        List<Empleado> empleados = empleadoRepository.findAllByEmpresaId(empresaService.getEmpresaDefault().getId());
         java.time.LocalDate hoy = java.time.LocalDate.now();
 
-        List<com.oculus.asistencia.turnos.model.AsignacionTurno> asignaciones = asignacionTurnoRepository.findAll()
+        List<com.oculus.asistencia.turnos.model.AsignacionTurno> asignaciones = asignacionTurnoRepository.findAllByEmpresaId(empresaService.getEmpresaDefault().getId())
                 .stream()
                 .filter(a -> !a.getFechaInicio().isAfter(hoy)
                         && (a.getFechaFin() == null || !a.getFechaFin().isBefore(hoy)))
@@ -68,10 +72,20 @@ public class EmpleadoController {
                         .filter(sh -> sh.getEmpleado().getId().equals(emp.getId()))
                         .findFirst()
                         .ifPresent(sh -> {
+                            emp.setSedeActual(sh.getSede() != null ? sh.getSede().getNombre() : null);
+                            emp.setSedeId(sh.getSede() != null ? sh.getSede().getId() : null);
                             if (sh.getSede() != null && sh.getSede().getTurnoDefecto() != null) {
                                 emp.setTurnoActual(sh.getSede().getTurnoDefecto().getNombre() + " (Sede)");
                                 emp.setDiasTurnoActual(sh.getSede().getDiasTurnoDefecto());
                             }
+                        });
+            } else {
+                sedesHabilitadas.stream()
+                        .filter(sh -> sh.getEmpleado().getId().equals(emp.getId()))
+                        .findFirst()
+                        .ifPresent(sh -> {
+                            emp.setSedeActual(sh.getSede() != null ? sh.getSede().getNombre() : null);
+                            emp.setSedeId(sh.getSede() != null ? sh.getSede().getId() : null);
                         });
             }
         }
@@ -86,21 +100,61 @@ public class EmpleadoController {
     }
 
     @PostMapping
-    public ResponseEntity<Empleado> crear(@RequestBody Empleado empleado) {
+    @Transactional
+    public ResponseEntity<?> crear(@RequestBody Empleado empleado) {
+        if (empleado.getEstado() == Empleado.EstadoEmpleado.ACTIVO) {
+            java.util.Optional<Empleado> existente = empleadoRepository.findByNumeroDocumentoAndEstado(empleado.getNumeroDocumento(), Empleado.EstadoEmpleado.ACTIVO);
+            if (existente.isPresent()) {
+                return ResponseEntity.badRequest().body("El documento ya se encuentra activo en el sistema. Debe desactivarlo primero.");
+            }
+        }
         resolverAsociaciones(empleado);
         Empleado saved = empleadoRepository.save(empleado);
+        gestionarSede(saved, empleado.getSedeId());
         return ResponseEntity.ok(saved);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Empleado> actualizar(@PathVariable Long id, @RequestBody Empleado empleado) {
+    @Transactional
+    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody Empleado empleado) {
         if (!empleadoRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
+        }
+        if (empleado.getEstado() == Empleado.EstadoEmpleado.ACTIVO) {
+            java.util.Optional<Empleado> existente = empleadoRepository.findByNumeroDocumentoAndEstado(empleado.getNumeroDocumento(), Empleado.EstadoEmpleado.ACTIVO);
+            if (existente.isPresent() && !existente.get().getId().equals(id)) {
+                return ResponseEntity.badRequest().body("El documento ya se encuentra activo en otro empleado del sistema. Debe desactivarlo primero.");
+            }
         }
         empleado.setId(id);
         resolverAsociaciones(empleado);
         Empleado updated = empleadoRepository.save(empleado);
+        gestionarSede(updated, empleado.getSedeId());
         return ResponseEntity.ok(updated);
+    }
+    
+    private void gestionarSede(Empleado empleado, Long sedeId) {
+        if (sedeId != null) {
+            java.util.Optional<com.oculus.asistencia.rrhh.model.EmpleadoSedeHabilitada> habilitacionOpt = sedeHabilitadaRepository
+                    .findFirstByEmpleadoIdAndActivoTrue(empleado.getId());
+
+            if (habilitacionOpt.isEmpty() || !habilitacionOpt.get().getSede().getId().equals(sedeId)) {
+                if (habilitacionOpt.isPresent()) {
+                    com.oculus.asistencia.rrhh.model.EmpleadoSedeHabilitada prev = habilitacionOpt.get();
+                    prev.setActivo(false);
+                    prev.setFechaHasta(java.time.LocalDate.now());
+                    sedeHabilitadaRepository.save(prev);
+                }
+                sedeRepository.findById(sedeId).ifPresent(sede -> {
+                    com.oculus.asistencia.rrhh.model.EmpleadoSedeHabilitada nuevaHabilitacion = new com.oculus.asistencia.rrhh.model.EmpleadoSedeHabilitada();
+                    nuevaHabilitacion.setEmpleado(empleado);
+                    nuevaHabilitacion.setSede(sede);
+                    nuevaHabilitacion.setFechaDesde(java.time.LocalDate.now());
+                    nuevaHabilitacion.setActivo(true);
+                    sedeHabilitadaRepository.save(nuevaHabilitacion);
+                });
+            }
+        }
     }
 
     private void resolverAsociaciones(Empleado empleado) {
@@ -146,6 +200,13 @@ public class EmpleadoController {
         }
 
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/importar")
+    public ResponseEntity<com.oculus.asistencia.rrhh.dto.ImportacionResultDto> importarEmpleados(@RequestParam("file") MultipartFile file)
+            throws java.io.IOException {
+        com.oculus.asistencia.rrhh.dto.ImportacionResultDto result = importacionMasivaService.importarEmpleadosYSedes(file.getInputStream());
+        return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/{id}")

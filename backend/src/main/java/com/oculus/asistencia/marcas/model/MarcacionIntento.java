@@ -18,6 +18,10 @@ public class MarcacionIntento {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "empresa_id")
+    private com.oculus.asistencia.organizacion.model.Empresa empresa;
+
     @Column(length = 36)
     private String uuid;
 

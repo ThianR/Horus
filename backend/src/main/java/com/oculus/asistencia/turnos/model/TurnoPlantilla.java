@@ -6,13 +6,20 @@ import java.util.List;
 
 @Data
 @Entity
-@Table(name = "turno_plantilla")
+@Table(name = "turno_plantilla", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"codigo", "empresa_id"})
+})
 public class TurnoPlantilla {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "empresa_id")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+    private com.oculus.asistencia.organizacion.model.Empresa empresa;
+
+    @Column(nullable = false)
     private String codigo;
 
     @Column(nullable = false)

@@ -23,6 +23,7 @@ public class EnrolamientoController {
     private final EmpleadoRepository empleadoRepository;
     private final PerfilBiometricoRepository perfilRepository;
     private final BiometriaService biometriaService;
+    private final com.oculus.asistencia.organizacion.service.EmpresaService empresaService;
 
     @PostMapping("/enrolar/{empleadoId}")
     public ResponseEntity<?> enrolarEmpleado(@PathVariable Long empleadoId, @RequestParam("foto") MultipartFile foto) {
@@ -52,6 +53,7 @@ public class EnrolamientoController {
 
             perfil.setEmpleado(empOpt.get());
             perfil.setEmbedding(convertirABytes(embedding));
+            perfil.setEmpresa(empresaService.getEmpresaDefault());
 
             perfilRepository.save(perfil);
 

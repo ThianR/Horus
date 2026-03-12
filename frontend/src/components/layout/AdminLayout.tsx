@@ -6,6 +6,8 @@ interface AdminLayoutProps {
     children: React.ReactNode;
 }
 
+import eyeLogo from '../../assets/eye.svg';
+
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -28,12 +30,18 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     >
                         <Menu size={22} />
                     </button>
+                    <img src={eyeLogo} alt="Logo" className="w-6 h-6" />
                     <span className="text-base font-bold text-gradient">Oculus Admin</span>
                 </header>
 
                 {/* Área de contenido */}
-                <main className="flex-1 p-4 md:p-8 overflow-y-auto">
-                    <div className="max-w-7xl mx-auto">
+                <main className="flex-1 p-4 md:p-8 overflow-y-auto relative">
+                    {/* Marca de agua de fondo */}
+                    <div className="fixed bottom-[-10%] right-[-5%] opacity-[0.03] pointer-events-none select-none z-0">
+                        <img src={eyeLogo} alt="" className="w-[500px]" />
+                    </div>
+
+                    <div className="max-w-7xl mx-auto relative z-10">
                         {children}
                     </div>
                 </main>

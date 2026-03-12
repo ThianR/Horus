@@ -15,4 +15,7 @@ public interface EmpleadoSedeHabilitadaRepository extends JpaRepository<Empleado
             @org.springframework.data.repository.query.Param("empleadoId") Long empleadoId);
 
     void deleteByEmpleado(Empleado empleado);
+
+    @org.springframework.data.jpa.repository.Query("SELECT e FROM EmpleadoSedeHabilitada e WHERE e.sede.id = :sedeId AND e.activo = true")
+    List<EmpleadoSedeHabilitada> findBySedeIdAndActivoTrue(@org.springframework.data.repository.query.Param("sedeId") Long sedeId);
 }

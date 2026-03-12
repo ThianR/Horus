@@ -12,6 +12,11 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "empresa_id")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+    private com.oculus.asistencia.organizacion.model.Empresa empresa;
+
     @Column(nullable = false, unique = true)
     private String username;
 

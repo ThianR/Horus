@@ -7,7 +7,12 @@ import java.util.Optional;
 
 @Repository
 public interface EmpleadoRepository extends JpaRepository<Empleado, Long> {
-    Optional<Empleado> findByCodigoEmpleado(String codigoEmpleado);
+    Optional<Empleado> findByCodigoEmpleadoAndEmpresaId(String codigoEmpleado, Long empresaId);
 
-    Optional<Empleado> findByNumeroDocumento(String numeroDocumento);
+    Optional<Empleado> findByNumeroDocumentoAndEmpresaId(String numeroDocumento, Long empresaId);
+    
+    Optional<Empleado> findByNumeroDocumentoAndEstado(String numeroDocumento, Empleado.EstadoEmpleado estado);
+
+    java.util.List<Empleado> findAllByEmpresaId(Long empresaId);
+    long countByEmpresaId(Long empresaId);
 }

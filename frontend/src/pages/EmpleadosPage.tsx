@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
-import { Plus, Search, MoreVertical, Edit2, Trash2, UserPlus, CalendarDays, X, UserCircle, ShieldCheck, UserMinus } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Plus, Search, MoreVertical, Edit2, Trash2, UserPlus, CalendarDays, X, UserCircle, ShieldCheck, UserMinus, Download } from 'lucide-react';
 import { empleadoService, Empleado } from '../services/empleadoService';
 import { asistenciaService } from '../services/asistenciaService';
 import { logger } from '../services/loggerService';
+import empresaService, { Empresa } from '../services/empresaService';
 import { toast } from 'sonner';
 import EmpleadoForm from '../components/EmpleadoForm';
 import AsignacionHorarioModal from '../components/AsignacionHorarioModal';
@@ -11,8 +12,11 @@ import DiasSemanaBadge from '../components/DiasSemanaBadge';
 
 const EmpleadosPage = () => {
     const [empleados, setEmpleados] = useState<Empleado[]>([]);
+    const [empresas, setEmpresas] = useState<Empresa[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [filterEmpresa, setFilterEmpresa] = useState('');
+    const [filterSede, setFilterSede] = useState('');
     const [showForm, setShowForm] = useState(false);
     const [selectedEmpleado, setSelectedEmpleado] = useState<Empleado | undefined>(undefined);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -21,6 +25,7 @@ const EmpleadosPage = () => {
 
     useEffect(() => {
         cargarEmpleados();
+        empresaService.getAll().then(setEmpresas).catch(console.error);
     }, []);
 
     const cargarEmpleados = async () => {
@@ -34,10 +39,62 @@ const EmpleadosPage = () => {
         }
     };
 
-    const filteredEmpleados = empleados.filter(emp =>
-        emp.nombreCompleto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.codigoEmpleado.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    useEffect(() => {
+        // Al cambiar de empresa, resetear filtro de sede
+        setFilterSede('');
+    }, [filterEmpresa]);
+
+    const sedesDisponibles = useMemo(() => {
+        const sedesMap = new Map<number, string>();
+        empleados.forEach(emp => {
+            if (emp.sedeId && emp.sedeActual) {
+                if (filterEmpresa && emp.empresa?.id?.toString() !== filterEmpresa) return;
+                sedesMap.set(emp.sedeId, emp.sedeActual);
+            }
+        });
+        return Array.from(sedesMap.entries())
+            .map(([id, nombre]) => ({ id, nombre }))
+            .sort((a, b) => a.nombre.localeCompare(b.nombre));
+    }, [empleados, filterEmpresa]);
+
+    const filteredEmpleados = empleados.filter(emp => {
+        const matchesSearch = emp.nombreCompleto.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                              emp.codigoEmpleado.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesEmpresa = filterEmpresa ? emp.empresa?.id?.toString() === filterEmpresa : true;
+        const matchesSede = filterSede ? emp.sedeId?.toString() === filterSede : true;
+        
+        return matchesSearch && matchesEmpresa && matchesSede;
+    });
+
+    const exportarExcel = () => {
+        const headers = ['Código', 'Nombre Completo', 'DNI', 'Email', 'Empresa', 'Sede', 'Estado', 'Horario', 'Dias'];
+        const rows = filteredEmpleados.map(emp => [
+            emp.codigoEmpleado,
+            emp.nombreCompleto,
+            emp.numeroDocumento,
+            emp.email || '',
+            emp.empresa?.nombre || '',
+            emp.sedeActual || '',
+            emp.estado,
+            emp.turnoActual || 'Sin Horario',
+            emp.diasTurnoActual || ''
+        ]);
+
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+        ].join('\n');
+
+        const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `empleados_export_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success('Empleados exportados correctamente');
+    };
 
     const toggleSelectAll = () => {
         if (selectedIds.length === filteredEmpleados.length) {
@@ -67,6 +124,23 @@ const EmpleadosPage = () => {
         }
     };
 
+    const handleDescargarPlantilla = () => {
+        const headers = 'codigoIdentificacionEmpresa,codigoEmpleado,numeroDocumento,nombreCompleto,email,codigoSede,nombreSede';
+        const row1 = '20111111112,EMP001,44555666,Juan Perez,juan@example.com,SED-LIMA-01,Sede Lima Principal';
+        const row2 = '20111111112,EMP002,77888999,Maria Lopez,maria@example.com,SED-LIMA-01,Sede Lima Principal';
+        const row3 = '30222222221,EMP003,11222333,Carlos Gomez,carlos@example.com,SED-SUC-BOG,Sucursal Bogota';
+        const csvContent = [headers, row1, row2, row3].join('\\n');
+        
+        const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'plantilla_empleados_v2.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div className="space-y-4 sm:space-y-6">
             <div className="flex items-center justify-between gap-4">
@@ -74,38 +148,89 @@ const EmpleadosPage = () => {
                     <h1 className="text-2xl sm:text-3xl font-bold text-white">Gestión de Empleados</h1>
                     <p className="text-slate-400 text-sm sm:text-base">Administra el personal, sus legajos y accesos biométricos.</p>
                 </div>
-                <button
-                    onClick={() => {
-                        setSelectedEmpleado(undefined);
-                        setShowForm(true);
-                    }}
-                    className="premium-gradient text-white px-3 sm:px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg shadow-blue-500/20 hover:scale-[1.02] transition-all whitespace-nowrap"
-                >
-                    <UserPlus size={20} />
-                    <span className="hidden sm:inline">Nuevo Empleado</span>
-                </button>
+                <div className="flex gap-3">
+                    <button
+                        onClick={handleDescargarPlantilla}
+                        className="bg-slate-800 border border-slate-700 hover:bg-slate-700 text-white px-3 sm:px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg transition-all"
+                        title="Descargar plantilla CSV de ejemplo"
+                    >
+                        <Download size={20} />
+                        <span className="hidden sm:inline">Plantilla</span>
+                    </button>
+                    <label className="bg-slate-800 border border-slate-700 hover:bg-slate-700 text-white px-3 sm:px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg transition-all whitespace-nowrap cursor-pointer">
+                        <UserPlus size={20} />
+                        <span className="hidden sm:inline">Importar Masivo</span>
+                        <input
+                            type="file"
+                            accept=".xlsx, .csv"
+                            className="hidden"
+                            onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+
+                                const toastId = toast.loading('Importando empleados y sedes...');
+                                try {
+                                    const result = await empleadoService.importarMasivo(file);
+                                    const resData = result.data as any; // ImportacionResultDto
+                                    
+                                    if (resData.errores && resData.errores.length > 0) {
+                                        toast.warning(`Importados: ${resData.procesados}. Se encontraron ${resData.errores.length} errores. Revisa la consola o notificaciones.`, { id: toastId, duration: 8000 });
+                                        // Mostrar errores en consola para que el usuario pueda verlos
+                                        console.warn("ERRORES DE IMPORTACIÓN:");
+                                        resData.errores.forEach((err: string) => console.warn(err));
+                                        
+                                        // Opcional: Podría guardarse en el estado para mostrarlo en un Modal. 
+                                        // Por ahora, usamos un alert con el desglose si son pocos, o en la consola.
+                                        alert(`Empleados procesados: ${resData.procesados}\nErrores (${resData.errores.length}):\n\n${resData.errores.slice(0,10).join('\\n')}${resData.errores.length > 10 ? '\\n...y mas' : ''}`);
+                                    } else {
+                                        toast.success(`Importación exitosa. ${resData.procesados} registros procesados.`, { id: toastId });
+                                    }
+                                    
+                                    cargarEmpleados();
+                                } catch (error) {
+                                    console.error('Error importando masivamente:', error);
+                                    toast.error('Error al procesar el archivo. Asegúrese del formato.', { id: toastId });
+                                }
+                                e.target.value = ''; // Reset input
+                            }}
+                        />
+                    </label>
+
+                    <button
+                        onClick={() => {
+                            setSelectedEmpleado(undefined);
+                            setShowForm(true);
+                        }}
+                        className="premium-gradient text-white px-3 sm:px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg shadow-blue-500/20 hover:scale-[1.02] transition-all whitespace-nowrap"
+                    >
+                        <UserPlus size={20} />
+                        <span className="hidden sm:inline">Nuevo Empleado</span>
+                    </button>
+                </div>
             </div>
 
-            {showForm && (
-                <EmpleadoForm
-                    empleado={selectedEmpleado}
-                    supervisores={empleados}
-                    onCancel={() => setShowForm(false)}
-                    onSave={async (data) => {
-                        try {
-                            if (selectedEmpleado?.id) {
-                                await empleadoService.actualizar(selectedEmpleado.id, data);
-                            } else {
-                                await empleadoService.crear(data);
+            {
+                showForm && (
+                    <EmpleadoForm
+                        empleado={selectedEmpleado}
+                        supervisores={empleados}
+                        onCancel={() => setShowForm(false)}
+                        onSave={async (data) => {
+                            try {
+                                if (selectedEmpleado?.id) {
+                                    await empleadoService.actualizar(selectedEmpleado.id, data);
+                                } else {
+                                    await empleadoService.crear(data);
+                                }
+                                setShowForm(false);
+                                cargarEmpleados();
+                            } catch (error) {
+                                console.error('Error al guardar:', error);
                             }
-                            setShowForm(false);
-                            cargarEmpleados();
-                        } catch (error) {
-                            console.error('Error al guardar:', error);
-                        }
-                    }}
-                />
-            )}
+                        }}
+                    />
+                )
+            }
 
             <div className="glass rounded-2xl p-6 relative">
                 {/* Bulk Actions Toolbar */}
@@ -128,15 +253,45 @@ const EmpleadosPage = () => {
                     </div>
                 </div>
 
-                <div className="relative mb-6">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Buscar por nombre o código..."
-                        className="w-full pl-12 pr-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-xl focus:border-blue-500 transition-all outline-none text-white !pl-12"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                <div className="flex flex-col sm:flex-row gap-4 mb-6 relative">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
+                        <input
+                            type="text"
+                            placeholder="Buscar por nombre o código..."
+                            className="w-full pl-12 pr-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-xl focus:border-blue-500 transition-all outline-none text-white !pl-12"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <select
+                        className="bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-3 text-white outline-none focus:border-blue-500"
+                        value={filterEmpresa}
+                        onChange={(e) => setFilterEmpresa(e.target.value)}
+                    >
+                        <option value="">Todas las Empresas</option>
+                        {empresas.map(emp => (
+                            <option key={emp.id} value={emp.id?.toString()}>{emp.nombre}</option>
+                        ))}
+                    </select>
+                    <select
+                        className="bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-3 text-white outline-none focus:border-blue-500"
+                        value={filterSede}
+                        onChange={(e) => setFilterSede(e.target.value)}
+                    >
+                        <option value="">Todas las Sedes</option>
+                        {sedesDisponibles.map(sede => (
+                            <option key={sede.id} value={sede.id}>{sede.nombre}</option>
+                        ))}
+                    </select>
+                    <button
+                        onClick={exportarExcel}
+                        className="bg-emerald-600/90 hover:bg-emerald-500 text-white px-4 py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all whitespace-nowrap"
+                        title="Exportar a Excel (CSV) lo mostrado en pantalla"
+                    >
+                        <Download size={20} />
+                        <span className="hidden sm:inline">Exportar</span>
+                    </button>
                 </div>
 
                 <div className="overflow-x-auto">
@@ -153,9 +308,9 @@ const EmpleadosPage = () => {
                                         />
                                     </div>
                                 </th>
-                                <th className="px-4 py-3 font-semibold">Código</th>
-                                <th className="px-4 py-3 font-semibold">Nombre Completo</th>
-                                <th className="px-4 py-3 font-semibold">DNI</th>
+                                <th className="px-4 py-3 font-semibold">Cód / DNI</th>
+                                <th className="px-4 py-3 font-semibold">Empleado</th>
+                                <th className="px-4 py-3 font-semibold">Empresa / Sede</th>
                                 <th className="px-4 py-3 font-semibold">Horario Actual</th>
                                 <th className="px-4 py-3 font-semibold">Estado</th>
                                 <th className="px-4 py-3 font-semibold text-right">Acciones</th>
@@ -188,13 +343,16 @@ const EmpleadosPage = () => {
                                             </div>
                                         </td>
                                         <td className="px-4 py-4">
-                                            <span className="bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full text-sm font-medium border border-blue-500/20">
-                                                {emp.codigoEmpleado}
-                                            </span>
+                                            <div className="flex flex-col gap-1">
+                                                <span className="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded text-xs font-medium border border-blue-500/20 w-fit">
+                                                    {emp.codigoEmpleado}
+                                                </span>
+                                                <span className="text-slate-400 text-xs">{emp.numeroDocumento}</span>
+                                            </div>
                                         </td>
                                         <td className="px-4 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-white font-bold text-sm">
+                                                <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-white font-bold text-sm shrink-0">
                                                     {emp.nombreCompleto.split(' ').map(n => n[0]).join('')}
                                                 </div>
                                                 <div>
@@ -210,7 +368,12 @@ const EmpleadosPage = () => {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-4 text-slate-300">{emp.numeroDocumento}</td>
+                                        <td className="px-4 py-4">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-sm text-slate-200">{emp.empresa?.nombre || 'Sin Empresa'}</span>
+                                                <span className="text-xs text-slate-500">{emp.sedeActual || 'Sin Sede'}</span>
+                                            </div>
+                                        </td>
                                         <td className="px-4 py-4">
                                             {emp.turnoActual ? (
                                                 <div className="flex flex-col">
@@ -329,19 +492,21 @@ const EmpleadosPage = () => {
                 selectedIds={selectedIds}
             />
 
-            {showRegistroBiom && selectedEmpleado && (
-                <RegistroBiometricoModal
-                    isOpen={showRegistroBiom}
-                    onClose={() => {
-                        setShowRegistroBiom(false);
-                        setSelectedEmpleado(undefined);
-                        cargarEmpleados();
-                    }}
-                    empleadoId={selectedEmpleado.id!}
-                    nombreEmpleado={selectedEmpleado.nombreCompleto}
-                />
-            )}
-        </div>
+            {
+                showRegistroBiom && selectedEmpleado && (
+                    <RegistroBiometricoModal
+                        isOpen={showRegistroBiom}
+                        onClose={() => {
+                            setShowRegistroBiom(false);
+                            setSelectedEmpleado(undefined);
+                            cargarEmpleados();
+                        }}
+                        empleadoId={selectedEmpleado.id!}
+                        nombreEmpleado={selectedEmpleado.nombreCompleto}
+                    />
+                )
+            }
+        </div >
     );
 };
 

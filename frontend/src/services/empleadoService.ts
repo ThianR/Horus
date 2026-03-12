@@ -13,6 +13,9 @@ export interface Empleado {
     usuarioId?: number;
     supervisorId?: number;
     biometriaRegistrada?: boolean;
+    empresa?: any;
+    sedeId?: number;
+    sedeActual?: string;
 }
 
 export const empleadoService = {
@@ -43,5 +46,15 @@ export const empleadoService = {
     asignacionMasiva: async (payload: { empleadoIds: number[], turnoId: number, diasSemana: string, fechaInicio: string }) => {
         const response = await api.post('/empleados/asignacion-masiva', payload);
         return response.data;
+    },
+
+    importarMasivo: async (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return api.post('/empleados/importar', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
     }
 };

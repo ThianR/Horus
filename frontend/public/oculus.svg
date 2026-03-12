@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="544" height="345" viewBox="0 0 544 345">
+  <defs>
+    <radialGradient id="iris" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#0a2336"/>
+      <stop offset="55%" stop-color="#0b7fb0"/>
+      <stop offset="100%" stop-color="#0fd0ff"/>
+    </radialGradient>
+
+    <linearGradient id="outerShade" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0a0f1f"/>
+      <stop offset="50%" stop-color="#0b1328"/>
+      <stop offset="100%" stop-color="#0a0f1f"/>
+    </linearGradient>
+
+    <filter id="glow" x="-40%" y="-120%" width="180%" height="340%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="softGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="10" result="b"/>
+      <feColorMatrix in="b" type="matrix"
+        values="1 0 0 0 0
+                0 1 0 0 0
+                0 0 1 0 0
+                0 0 0 0.7 0" result="c"/>
+      <feMerge>
+        <feMergeNode in="c"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Outer eye -->
+  <path d="M 10 172
+           C 95 70, 185 25, 272 25
+           C 359 25, 449 70, 534 172
+           C 449 274, 359 319, 272 319
+           C 185 319, 95 274, 10 172 Z"
+        fill="url(#outerShade)"/>
+
+  <!-- Iris ring -->
+  <circle cx="272" cy="172" r="92" fill="none" stroke="url(#iris)" stroke-width="34" opacity="0.95"/>
+  <circle cx="272" cy="172" r="60" fill="#0a1326"/>
+
+  <!-- Segmented highlights -->
+  <g opacity="0.30">
+    <circle cx="272" cy="172" r="92" fill="none" stroke="#a9f2ff" stroke-width="34"
+            stroke-linecap="butt" stroke-dasharray="18 12" transform="rotate(-10 272 172)"/>
+  </g>
+
+  <!-- Horizontal scan line -->
+  <g filter="url(#softGlow)">
+    <rect x="72" y="165" width="400" height="14" rx="7" fill="#21f3ff" opacity="0.95" filter="url(#glow)"/>
+    <rect x="72" y="168" width="400" height="8" rx="4" fill="#6fffff" opacity="0.35"/>
+  </g>
+</svg>

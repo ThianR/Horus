@@ -25,14 +25,16 @@ public class DashboardController {
     private final AsistenciaDiaRepository asistenciaRepository;
     private final MarcacionEventoRepository marcacionRepository;
     private final EmpleadoRepository empleadoRepository;
+    private final com.oculus.asistencia.organizacion.service.EmpresaService empresaService;
 
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getStats() {
+        Long empresaId = empresaService.getEmpresaDefault().getId();
         LocalDate hoy = LocalDate.now();
-        long totalEmpleados = empleadoRepository.count();
-        long totalAsistencias = asistenciaRepository.countTotalAsistenciasPorFecha(hoy);
-        long presentes = asistenciaRepository.countPresentesPorFecha(hoy);
-        long tardanzas = asistenciaRepository.countTardanzasPorFecha(hoy);
+        long totalEmpleados = empleadoRepository.countByEmpresaId(empresaId);
+        long totalAsistencias = asistenciaRepository.countTotalAsistenciasPorFechaAndEmpresaId(hoy, empresaId);
+        long presentes = asistenciaRepository.countPresentesPorFechaAndEmpresaId(hoy, empresaId);
+        long tardanzas = asistenciaRepository.countTardanzasPorFechaAndEmpresaId(hoy, empresaId);
 
         // Alertas: Tardanzas del día
         long alertas = tardanzas;
@@ -49,7 +51,10 @@ public class DashboardController {
 
     @GetMapping("/eventos-recientes")
     public ResponseEntity<List<Map<String, Object>>> getEventosRecientes() {
-        List<MarcacionEvento> eventos = marcacionRepository.findUltimasDiez();
+        List<MarcacionEvento> eventos = marcacionRepository.findAllByEmpresaId(empresaService.getEmpresaDefault().getId()).stream()
+                .sorted((e1, e2) -> e2.getTimestampEvento().compareTo(e1.getTimestampEvento()))
+                .limit(10)
+                .collect(Collectors.toList());
 
         List<Map<String, Object>> result = eventos.stream().map(e -> {
             Map<String, Object> map = new HashMap<>();
@@ -68,8 +73,9 @@ public class DashboardController {
 
     @GetMapping("/asistencias-hoy")
     public ResponseEntity<List<AsistenciaDia>> getAsistenciasHoy() {
+        Long empresaId = empresaService.getEmpresaDefault().getId();
         LocalDate hoy = LocalDate.now();
-        List<AsistenciaDia> asistencias = asistenciaRepository.findAllByFechaLaboralOrderByHoraEntradaRealDesc(hoy);
+        List<AsistenciaDia> asistencias = asistenciaRepository.findAllByFechaLaboralAndEmpresaIdOrderByHoraEntradaRealDesc(hoy, empresaId);
         return ResponseEntity.ok(asistencias);
     }
 }

@@ -25,7 +25,7 @@ dist-ssr/
 
 # Logs e historial de pruebas
 *.log
-npm-debug.log*
+*.txt
 
 # Bases de Datos Locales (H2)
 /backend/data/

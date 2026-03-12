@@ -8,6 +8,8 @@ import java.util.Optional;
 
 @Repository
 public interface PerfilBiometricoRepository extends JpaRepository<PerfilBiometrico, Long> {
+    java.util.List<PerfilBiometrico> findAllByEmpresaId(Long empresaId);
+
     Optional<PerfilBiometrico> findByEmpleadoId(Long empleadoId);
 
     @org.springframework.data.jpa.repository.Modifying

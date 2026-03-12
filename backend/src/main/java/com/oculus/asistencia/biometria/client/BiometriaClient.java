@@ -69,4 +69,16 @@ public class BiometriaClient {
                     e);
         }
     }
+
+    public Map<String, Object> checkHealth() {
+        try {
+            ResponseEntity<Map> response = restTemplate.getForEntity(
+                    pythonServiceUrl + "/health",
+                    Map.class);
+            return (Map<String, Object>) response.getBody();
+        } catch (Exception e) {
+            log.warn("El servicio de biometría Python no responde en {}: {}", pythonServiceUrl, e.getMessage());
+            return Map.of("status", "error", "message", e.getMessage());
+        }
+    }
 }

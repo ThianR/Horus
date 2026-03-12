@@ -9,9 +9,13 @@ import {
   Clock,
   Menu,
   X,
-  Camera
+  Camera,
+  FileBarChart,
+  Building2
 } from 'lucide-react';
 import { useState } from 'react';
+
+import eyeLogo from '../../assets/eye.svg';
 
 interface SidebarProps {
   /** Modo mobile: el sidebar actúa como overlay drawer */
@@ -26,8 +30,9 @@ const Sidebar = ({ mobileOpen = false, onMobileClose }: SidebarProps) => {
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/admin/dashboard' },
     { icon: <Users size={20} />, label: 'Empleados', path: '/admin/empleados' },
     { icon: <Clock size={20} />, label: 'Horarios', path: '/admin/horarios' },
+    { icon: <FileBarChart size={20} />, label: 'Reportes', path: '/admin/reportes' },
     { icon: <Calendar size={20} />, label: 'Asistencias', path: '/admin/asistencias' },
-    { icon: <MapPin size={20} />, label: 'Sedes', path: '/admin/sedes' },
+    { icon: <Building2 size={20} />, label: 'Organización', path: '/admin/organizacion' },
     { icon: <Camera size={20} />, label: 'Modo Kiosco', path: '/kiosco' },
     { icon: <Settings size={20} />, label: 'Configuración', path: '/admin/configuracion' },
   ];
@@ -63,10 +68,8 @@ const Sidebar = ({ mobileOpen = false, onMobileClose }: SidebarProps) => {
       >
         {/* Cabecera */}
         <div className="p-6 border-b border-slate-700/50 flex items-center justify-between">
-          <h1 className="text-xl font-bold flex items-center gap-2">
-            <div className="w-8 h-8 premium-gradient rounded-lg flex items-center justify-center">
-              <Clock size={18} className="text-white" />
-            </div>
+          <h1 className="text-xl font-bold flex items-center gap-3">
+            <img src={eyeLogo} alt="Logo" className="w-8 h-8 drop-shadow-[0_0_8px_rgba(33,243,255,0.4)]" />
             <span className="text-gradient">Oculus Admin</span>
           </h1>
           {/* Botón cerrar solo visible en mobile */}

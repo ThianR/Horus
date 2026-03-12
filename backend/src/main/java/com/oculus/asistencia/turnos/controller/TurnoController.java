@@ -14,10 +14,11 @@ import java.util.List;
 public class TurnoController {
 
     private final TurnoPlantillaRepository turnoRepository;
+    private final com.oculus.asistencia.organizacion.service.EmpresaService empresaService;
 
     @GetMapping
     public ResponseEntity<List<TurnoPlantilla>> listarTodos() {
-        return ResponseEntity.ok(turnoRepository.findAll());
+        return ResponseEntity.ok(turnoRepository.findAllByEmpresaIdOrGlobal(empresaService.getEmpresaDefault().getId()));
     }
 
     @GetMapping("/{id}")
@@ -29,6 +30,7 @@ public class TurnoController {
 
     @PostMapping
     public ResponseEntity<TurnoPlantilla> crear(@RequestBody TurnoPlantilla turno) {
+        turno.setEmpresa(empresaService.getEmpresaDefault());
         vincularSegmentos(turno);
         TurnoPlantilla saved = turnoRepository.save(turno);
         return ResponseEntity.ok(saved);

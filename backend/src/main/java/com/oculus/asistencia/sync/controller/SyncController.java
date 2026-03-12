@@ -27,6 +27,7 @@ public class SyncController {
     private final MotorAsistenciaService motorService;
     private final com.oculus.asistencia.biometria.repository.PerfilBiometricoRepository perfilRepository;
     private final com.oculus.asistencia.biometria.service.PaqueteEmbeddingsService paqueteService;
+    private final com.oculus.asistencia.organizacion.service.EmpresaService empresaService;
 
     @PostMapping("/subir-eventos")
     public ResponseEntity<SyncResult> subirEventos(@RequestBody List<MarcacionDto> eventos) {
@@ -49,6 +50,7 @@ public class SyncController {
                     ev.setEmpleado(empOpt.get());
                     ev.setTimestampEvento(dto.timestamp());
                     ev.setTipoEvento(dto.tipo());
+                    ev.setEmpresa(empresaService.getEmpresaDefault());
                     ev.setEstadoProceso(MarcacionEvento.EstadoProceso.PENDIENTE);
                     ev.setMetodoVerificacion("OFFLINE_SYNC");
 
@@ -77,9 +79,8 @@ public class SyncController {
 
     @GetMapping("/descargar-cambios")
     public ResponseEntity<?> descargarCambios(@RequestParam(required = false) LocalDateTime desde) {
-        // MVP: Retorna lista completa de empleados activos
-        // TODO: Implementar lógica real de deltas
-        List<Empleado> empleados = empleadoRepository.findAll();
+        // MVP: Retorna lista completa de empleados activos del tenant
+        List<Empleado> empleados = empleadoRepository.findAllByEmpresaId(empresaService.getEmpresaDefault().getId());
         return ResponseEntity.ok(empleados);
     }
 
@@ -90,9 +91,8 @@ public class SyncController {
         log.info("Sede {} solicita descarga de embeddings desde versión {}", sedeId, version);
 
         // En una implementación real, filtraríamos por sede (habilitación)
-        // Por ahora retornamos todos los que tengan versión superior a la local del
-        // kiosco
-        List<com.oculus.asistencia.biometria.model.PerfilBiometrico> perfiles = perfilRepository.findAll();
+        // Por ahora retornamos todos los del tenant que tengan versión superior a la local del kiosco
+        List<com.oculus.asistencia.biometria.model.PerfilBiometrico> perfiles = perfilRepository.findAllByEmpresaId(empresaService.getEmpresaDefault().getId());
 
         return ResponseEntity.ok(perfiles.stream()
                 .filter(p -> p.getVersion() > version)

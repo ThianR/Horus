@@ -1,0 +1,4 @@
+codigoIdentificacionEmpresa,codigoEmpleado,numeroDocumento,nombreCompleto,email,codigoSede,nombreSede
+20111111112,EMP001,44555666,Juan Perez,juan@example.com,SED-LIMA-01,Sede Lima Principal
+20111111112,EMP002,77888999,Maria Lopez,maria@example.com,SED-LIMA-01,Sede Lima Principal
+30222222221,EMP003,11222333,Carlos Gomez,carlos@example.com,SED-SUC-BOG,Sucursal Bogota

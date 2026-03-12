@@ -16,16 +16,29 @@ public class SedeController {
 
     private final SedeRepository sedeRepository;
     private final DispositivoRepository dispositivoRepository;
+    private final com.oculus.asistencia.organizacion.service.EmpresaService empresaService;
+    private final com.oculus.asistencia.organizacion.repository.EmpresaRepository empresaRepository;
     private final com.oculus.asistencia.turnos.repository.TurnoPlantillaRepository turnoRepository;
 
     @GetMapping
-    public List<Sede> listarSedes() {
-        return sedeRepository.findAll();
+    public List<Sede> listarSedes(@RequestParam(required = false) Long empresaId) {
+        if (empresaId != null) {
+            return sedeRepository.findAllByEmpresaId(empresaId);
+        }
+        return java.util.Collections.emptyList();
     }
 
     @PostMapping
-    public Sede crearSede(@RequestBody Sede sede) {
-        return sedeRepository.save(sede);
+    public ResponseEntity<Sede> crearSede(@RequestBody Sede sede, @RequestParam(required = false) Long empresaId) {
+        if (empresaId != null) {
+            return empresaRepository.findById(empresaId).map(emp -> {
+                sede.setEmpresa(emp);
+                return ResponseEntity.ok(sedeRepository.save(sede));
+            }).orElse(ResponseEntity.badRequest().build());
+        } else {
+            sede.setEmpresa(empresaService.getEmpresaDefault());
+            return ResponseEntity.ok(sedeRepository.save(sede));
+        }
     }
 
     @GetMapping("/{id}")
@@ -37,12 +50,13 @@ public class SedeController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Sede> actualizar(@PathVariable Long id, @RequestBody Sede sede) {
-        if (!sedeRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        sede.setId(id);
-        Sede updated = sedeRepository.save(sede);
-        return ResponseEntity.ok(updated);
+        return sedeRepository.findById(id).map(existing -> {
+            existing.setNombre(sede.getNombre());
+            existing.setDireccion(sede.getDireccion());
+            existing.setCodigoExterno(sede.getCodigoExterno());
+            // No cambiamos la empresa en una actualización simple de sede
+            return ResponseEntity.ok(sedeRepository.save(existing));
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}/turno-defecto")
@@ -85,6 +99,7 @@ public class SedeController {
             @RequestBody Dispositivo dispositivo) {
         return sedeRepository.findById(sedeId).map(sede -> {
             dispositivo.setSede(sede);
+            dispositivo.setEmpresa(sede.getEmpresa()); // Heredar empresa de la sede
             return ResponseEntity.ok(dispositivoRepository.save(dispositivo));
         }).orElse(ResponseEntity.notFound().build());
     }
