@@ -7,10 +7,20 @@ import com.oculus.asistencia.identidad.model.Usuario;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString(exclude = {"empresa", "usuario", "supervisor", "perfilBiometrico", "marcaciones"})
+@EqualsAndHashCode(exclude = {"empresa", "usuario", "supervisor", "perfilBiometrico", "marcaciones"})
 @Entity
 @Table(name = "empleado", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"codigo_empleado", "empresa_id"})
@@ -85,5 +95,6 @@ public class Empleado {
 
     @OneToMany(mappedBy = "empleado", cascade = CascadeType.ALL, orphanRemoval = true)
     @com.fasterxml.jackson.annotation.JsonIgnore
+    @Builder.Default
     private java.util.List<com.oculus.asistencia.marcas.model.MarcacionEvento> marcaciones = new java.util.ArrayList<>();
 }

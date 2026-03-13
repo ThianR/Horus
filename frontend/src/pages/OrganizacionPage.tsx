@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
     Building2, MapPin, Server, Plus, ChevronRight, 
     ArrowLeft, Edit2, Trash2, Save, X, Activity, Globe,
-    ChevronDown, Check, Home, Info
+    ChevronDown, Check, Home, Info, Cpu, Fingerprint, AlertTriangle
 } from 'lucide-react';
+import { getPersistentDeviceId } from '../utils/deviceFingerprint';
 import api from '../services/api';
 import empresaService, { Empresa } from '../services/empresaService';
 import { Sede, Dispositivo, sedeService, dispositivoService } from '../services/sedeService';
@@ -96,7 +97,7 @@ const OrganizacionPage = () => {
     const [showDispositivoModal, setShowDispositivoModal] = useState(false);
 
     // Datos de Formulario
-    const [empresaForm, setEmpresaForm] = useState<Partial<Empresa>>({ nombre: '', identificacionFiscal: '', direccion: '', telefono: '', activo: true });
+    const [empresaForm, setEmpresaForm] = useState<Partial<Empresa>>({ nombre: '', identificacionFiscal: '', direccion: '', telefono: '', activo: true, cierreDiaAutomatico: false });
     const [sedeForm, setSedeForm] = useState<Partial<Sede>>({ nombre: '', direccion: '', codigoExterno: '', turnoDefectoId: null, diasTurnoDefecto: 'LUN,MAR,MIE,JUE,VIE' });
     const [dispositivoForm, setDispositivoForm] = useState<Partial<Dispositivo>>({ nombre: '', uuidHardware: '', tipo: 'KIOSCO', estado: 'INACTIVO', ipAddress: '' });
 
@@ -210,6 +211,16 @@ const OrganizacionPage = () => {
         } catch (error) { toast.error("Error al guardar sede"); }
     };
 
+    const capturarIdActual = async () => {
+        try {
+            const fingerprint = await getPersistentDeviceId();
+            setDispositivoForm({ ...dispositivoForm, uuidHardware: fingerprint });
+            toast.info("Identificador de hardware capturado desde tu navegador actual");
+        } catch (error) {
+            toast.error("No se pudo generar el identificador de hardware");
+        }
+    };
+
     const saveDispositivo = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedSede) return;
@@ -220,7 +231,14 @@ const OrganizacionPage = () => {
             toast.success("Dispositivo configurado");
             setShowDispositivoModal(false);
             cargarDispositivos(selectedSede.id);
-        } catch (error) { toast.error("Error al guardar dispositivo"); }
+        } catch (error) { 
+            const errorData = (error as any).response?.data;
+            if (errorData?.mensaje) {
+                toast.error(errorData.mensaje);
+            } else {
+                toast.error("Error al guardar dispositivo"); 
+            }
+        }
     };
 
     const deleteEmpresa = async (id: number) => {
@@ -321,7 +339,7 @@ const OrganizacionPage = () => {
 
                 <div className="relative z-10">
                     {view === 'empresas' && (
-                        <button onClick={() => { setEmpresaForm({ nombre: '', identificacionFiscal: '', activo: true }); setShowEmpresaModal(true); }} className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-8 py-4 rounded-[1.5rem] font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95">
+                        <button onClick={() => { setEmpresaForm({ nombre: '', identificacionFiscal: '', activo: true, cierreDiaAutomatico: false }); setShowEmpresaModal(true); }} className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-8 py-4 rounded-[1.5rem] font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95">
                             <Plus size={20} /> Nueva Empresa
                         </button>
                     )}
@@ -495,6 +513,16 @@ const OrganizacionPage = () => {
                                     <input type="text" value={empresaForm.identificacionFiscal} onChange={e => setEmpresaForm({...empresaForm, identificacionFiscal: e.target.value})} className="form-input pl-12 font-mono tracking-widest" placeholder="Registro tributario oficial" />
                                 </div>
                             </div>
+
+                            <div className="flex items-center gap-3 p-4 bg-white/5 rounded-2xl border border-white/5 group hover:bg-white/10 transition-all cursor-pointer" onClick={() => setEmpresaForm({...empresaForm, cierreDiaAutomatico: !empresaForm.cierreDiaAutomatico})}>
+                                <div className={`w-6 h-6 rounded-md border flex items-center justify-center transition-all ${empresaForm.cierreDiaAutomatico ? 'bg-blue-500 border-blue-500' : 'border-white/20'}`}>
+                                    {empresaForm.cierreDiaAutomatico && <Check size={16} className="text-white" />}
+                                </div>
+                                <div>
+                                    <p className="text-xs font-black text-white uppercase tracking-tight">Cierre de Día Automático</p>
+                                    <p className="text-[10px] text-slate-500 font-bold italic">Procesar faltas cada medianoche (00:05 AM)</p>
+                                </div>
+                            </div>
                             
                             <div className="flex gap-4 pt-6">
                                 <button type="button" onClick={() => setShowEmpresaModal(false)} className="flex-1 px-8 py-4 bg-slate-900 border border-white/5 text-slate-400 rounded-2xl font-black transition-all uppercase text-[10px] tracking-widest active:scale-95">Descartar</button>
@@ -555,14 +583,48 @@ const OrganizacionPage = () => {
                             <button onClick={() => setShowDispositivoModal(false)} className="p-2 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-all"><X size={24} /></button>
                         </div>
                         <form onSubmit={saveDispositivo} className="p-8 space-y-6">
-                            <div className="grid grid-cols-2 gap-6">
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Hardware ID (UUID)</label>
-                                    <input required disabled={!!dispositivoForm.id} type="text" value={dispositivoForm.uuidHardware} onChange={e => setDispositivoForm({...dispositivoForm, uuidHardware: e.target.value.toUpperCase()})} className="form-input font-mono bg-black/40 border-purple-500/20 text-purple-400 focus:border-purple-500/60" placeholder="00-FF-..." />
+                            <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex gap-4 animate-in slide-in-from-top-4 duration-500">
+                                <div className="p-3 bg-amber-500/20 rounded-xl h-fit">
+                                    <Fingerprint className="text-amber-400" size={24} />
                                 </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Etiqueta Visual</label>
-                                    <input required type="text" value={dispositivoForm.nombre} onChange={e => setDispositivoForm({...dispositivoForm, nombre: e.target.value})} className="form-input font-black" placeholder="Ej: Cam 01" />
+                                <div className="space-y-1">
+                                    <h4 className="text-sm font-black text-amber-200 uppercase tracking-tight">Acerca de la Huella Digital (ID)</h4>
+                                    <p className="text-[11px] text-amber-100/60 leading-relaxed italic">
+                                        Este identificador se genera basándose en el hardware (GPU, CPU, Monitor) y software de este equipo. 
+                                        Cambiar el navegador, formatear o sustituir componentes físicos requerirá un nuevo registro del terminal.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-1.5 order-2 md:order-1">
+                                    <div className="flex justify-between items-end mb-1 px-1">
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hardware ID (Fingerprint)</label>
+                                        {!dispositivoForm.id && (
+                                            <button 
+                                                type="button" 
+                                                onClick={capturarIdActual}
+                                                className="text-[10px] text-purple-400 hover:text-purple-300 font-black uppercase flex items-center gap-1 transition-colors"
+                                            >
+                                                <Cpu size={12} /> Auto-Detectar
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="relative">
+                                        <input 
+                                            required 
+                                            disabled={!!dispositivoForm.id} 
+                                            type="text" 
+                                            value={dispositivoForm.uuidHardware} 
+                                            onChange={e => setDispositivoForm({...dispositivoForm, uuidHardware: e.target.value.toUpperCase()})} 
+                                            className="form-input font-mono bg-black/40 border-purple-500/20 text-purple-400 focus:border-purple-500/60 disabled:opacity-50" 
+                                            placeholder="Detecta o escribe el ID" 
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5 order-1 md:order-2">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Alias del Terminal</label>
+                                    <input required type="text" value={dispositivoForm.nombre} onChange={e => setDispositivoForm({...dispositivoForm, nombre: e.target.value})} className="form-input font-black" placeholder="Ej: Kiosco Recepción" />
                                 </div>
                             </div>
                             

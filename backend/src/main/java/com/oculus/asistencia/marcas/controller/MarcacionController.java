@@ -1,6 +1,6 @@
 package com.oculus.asistencia.marcas.controller;
 
-import com.oculus.asistencia.biometria.service.BiometriaService;
+
 import com.oculus.asistencia.marcas.model.MarcacionEvento;
 import com.oculus.asistencia.marcas.repository.MarcacionEventoRepository;
 import com.oculus.asistencia.motor.service.MotorAsistenciaService;
@@ -48,13 +48,15 @@ public class MarcacionController {
         try {
             byte[] bytes = foto.getBytes();
 
-            // 0. Validar Calidad (Opcional para identificación, pero útil para log)
-            BiometriaService.ResultadoValidacion checkCalidad = biometriaService.validarCalidadImagen(bytes);
-            log.info("Calidad de imagen para identificación: {} (Valida: {})", checkCalidad.calidad(),
-                    checkCalidad.esValida());
-
-            // 1. Extraer características
-            float[] embedding = biometriaService.extraerEmbedding(bytes);
+            // OPTIMIZACIÓN: Realizar una única llamada al servicio IA para extraer características.
+            // La calidad ahora se valida internamente en una sola pasada.
+            float[] embedding;
+            try {
+                embedding = biometriaService.extraerEmbedding(bytes);
+            } catch (Exception e) {
+                log.warn("Fallo en la detección/calidad de imagen: {}", e.getMessage());
+                return ResponseEntity.status(400).body("No se pudo detectar un rostro válido. Verifique la iluminación y que su rostro sea visible.");
+            }
 
             Long empresaId = empresaService.getEmpresaDefault().getId();
             com.oculus.asistencia.organizacion.model.Sede sede = null;

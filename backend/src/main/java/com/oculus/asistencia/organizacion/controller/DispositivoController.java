@@ -15,6 +15,29 @@ public class DispositivoController {
 
     private final DispositivoRepository dispositivoRepository;
 
+    @GetMapping("/validar/{uuid}")
+    public ResponseEntity<?> validarDispositivo(@PathVariable String uuid) {
+        return dispositivoRepository.findByUuidHardware(uuid)
+                .map(disp -> {
+                    if (disp.getEstado() != Dispositivo.EstadoDispositivo.ACTIVO) {
+                        System.out.println("Validación FALLIDA: Dispositivo encontrado [" + uuid + "] pero está en estado " + disp.getEstado());
+                        return ResponseEntity.badRequest()
+                            .body(java.util.Map.of("mensaje", "El dispositivo no se encuentra activo"));
+                    }
+                    return ResponseEntity.ok(java.util.Map.of(
+                        "id", disp.getId(),
+                        "nombre", disp.getNombre(),
+                        "sedeId", disp.getSede().getId(),
+                        "empresaId", disp.getEmpresa().getId(),
+                        "tipo", disp.getTipo()
+                    ));
+                })
+                .orElseGet(() -> {
+                    System.out.println("Validación FALLIDA: No se encontró dispositivo con UUID [" + uuid + "]");
+                    return ResponseEntity.notFound().build();
+                });
+    }
+
     @GetMapping
     public List<Dispositivo> listarTodos(@RequestParam(required = false) Long empresaId) {
         if (empresaId != null) {
@@ -31,17 +54,32 @@ public class DispositivoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Dispositivo> actualizar(@PathVariable Long id, @RequestBody Dispositivo dispositivo) {
+    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody Dispositivo dispositivo) {
         if (!dispositivoRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
+        
+        // Validar unicidad de UUID si se está intentando cambiar o activar
+        java.util.Optional<Dispositivo> existente = dispositivoRepository.findByUuidHardware(dispositivo.getUuidHardware());
+        if (existente.isPresent() && !existente.get().getId().equals(id) && 
+            existente.get().getEstado() == Dispositivo.EstadoDispositivo.ACTIVO &&
+            dispositivo.getEstado() == Dispositivo.EstadoDispositivo.ACTIVO) {
+            return ResponseEntity.badRequest()
+                .body(java.util.Map.of("mensaje", "Este dispositivo ya se encuentra activo en otra sede o empresa (" + existente.get().getSede().getNombre() + ")"));
+        }
+
         dispositivo.setId(id);
 
         // Mantener la sede original si no se manda en la request, pero idealmente se
         // pasa integra.
         Dispositivo current = dispositivoRepository.findById(id).orElse(null);
-        if (current != null && dispositivo.getSede() == null) {
-            dispositivo.setSede(current.getSede());
+        if (current != null) {
+            if (dispositivo.getSede() == null) {
+                dispositivo.setSede(current.getSede());
+            }
+            if (dispositivo.getEmpresa() == null) {
+                dispositivo.setEmpresa(current.getEmpresa());
+            }
         }
 
         Dispositivo updated = dispositivoRepository.save(dispositivo);

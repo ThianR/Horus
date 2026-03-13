@@ -22,8 +22,19 @@ public class ReporteController {
     private final com.oculus.asistencia.reportes.service.ReporteService reporteService;
     private final com.oculus.asistencia.reportes.service.ImportacionService importacionService;
     private final com.oculus.asistencia.organizacion.service.EmpresaService empresaService;
-    private final com.oculus.asistencia.rrhh.repository.EmpleadoRepository empleadoRepository;
     private final com.oculus.asistencia.marcas.repository.MarcacionEventoRepository marcacionEventoRepository;
+    private final com.oculus.asistencia.rrhh.repository.EmpleadoRepository empleadoRepository;
+
+    @GetMapping
+    public List<AsistenciaDia> listarAsistencias(
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate inicio,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate fin,
+            @RequestParam(required = false) Long sedeId,
+            @RequestParam(required = false) Long empleadoId) {
+        
+        Long empresaId = empresaService.getEmpresaDefault().getId();
+        return reporteService.buscarAsistencias(empresaId, inicio, fin, sedeId, empleadoId);
+    }
 
     @GetMapping("/seed")
     public ResponseEntity<String> seedTestData() {
@@ -52,6 +63,17 @@ public class ReporteController {
             s.setEstadoProceso(com.oculus.asistencia.marcas.model.MarcacionEvento.EstadoProceso.PENDIENTE);
             s.setMetodoVerificacion("SEED_TEST");
             marcacionEventoRepository.save(s);
+
+            // También generamos el registro de asistencia procesado para visualización inmediata
+            AsistenciaDia ad = new AsistenciaDia();
+            ad.setEmpleado(emp);
+            ad.setEmpresa(emp.getEmpresa());
+            ad.setFechaLaboral(base.plusDays(i).toLocalDate());
+            ad.setHoraEntradaReal(base.plusDays(i));
+            ad.setHoraSalidaReal(base.plusDays(i).plusHours(9));
+            ad.setMinsTardanza(i == 1 ? 15 : 0);
+            ad.setEstadoAsistencia(i == 1 ? AsistenciaDia.EstadoAsistencia.TARDANZA : AsistenciaDia.EstadoAsistencia.NORMAL);
+            asistenciaRepository.save(ad);
         }
 
         return ResponseEntity.ok("Datos de prueba generados para: " + emp.getNombreCompleto() + " (Código: "

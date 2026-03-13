@@ -142,7 +142,7 @@ const RegistroBiometricoModal: React.FC<RegistroBiometricoModalProps> = ({ isOpe
                         )}
                     </div>
 
-                    <div className="flex gap-4 w-full">
+                    <div className="flex gap-4 w-full mb-6">
                         <button
                             onClick={onClose}
                             className="flex-1 py-3 px-4 rounded-xl border border-white/10 font-bold hover:bg-white/5 transition-colors"
@@ -157,6 +157,35 @@ const RegistroBiometricoModal: React.FC<RegistroBiometricoModalProps> = ({ isOpe
                             <Camera size={20} />
                             Capturar y Registrar
                         </button>
+                    </div>
+
+                    {/* Recomendaciones de Captura */}
+                    <div className="w-full bg-white/5 rounded-2xl p-4 border border-white/5">
+                        <h4 className="text-sm font-bold text-blue-400 mb-3 flex items-center gap-2">
+                            <AlertCircle size={16} /> Indicaciones para un Registro Óptimo:
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[13px]">
+                            <div className="flex gap-2 text-slate-300">
+                                <span className="font-bold text-blue-500">1.</span>
+                                <p><span className="text-white font-medium">Luz Frontal:</span> Evite sombras fuertes o contraluces potentes.</p>
+                            </div>
+                            <div className="flex gap-2 text-slate-300">
+                                <span className="font-bold text-blue-500">2.</span>
+                                <p><span className="text-white font-medium">Postura:</span> Mire al centro a la altura de sus ojos.</p>
+                            </div>
+                            <div className="flex gap-2 text-slate-300">
+                                <span className="font-bold text-blue-500">3.</span>
+                                <p><span className="text-white font-medium">Despejado:</span> Retire gafas de sol, mascarillas o bufandas.</p>
+                            </div>
+                            <div className="flex gap-2 text-slate-300">
+                                <span className="font-bold text-blue-500">4.</span>
+                                <p><span className="text-white font-medium">Cabeza Recta:</span> Evite inclinar o girar el rostro hacia los lados.</p>
+                            </div>
+                            <div className="flex gap-2 text-slate-300">
+                                <span className="font-bold text-blue-500">5.</span>
+                                <p><span className="text-white font-medium">Cambios:</span> Si cambia drásticamente de look (ej. barba larga), realice un nuevo registro.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

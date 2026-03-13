@@ -33,7 +33,7 @@ const Sidebar = ({ mobileOpen = false, onMobileClose }: SidebarProps) => {
     { icon: <FileBarChart size={20} />, label: 'Reportes', path: '/admin/reportes' },
     { icon: <Calendar size={20} />, label: 'Asistencias', path: '/admin/asistencias' },
     { icon: <Building2 size={20} />, label: 'Organización', path: '/admin/organizacion' },
-    { icon: <Camera size={20} />, label: 'Modo Kiosco', path: '/kiosco' },
+    { icon: <Camera size={20} />, label: 'Oculus Point', path: '/kiosco' },
     { icon: <Settings size={20} />, label: 'Configuración', path: '/admin/configuracion' },
   ];
 

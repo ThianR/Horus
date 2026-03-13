@@ -95,8 +95,16 @@ public class SedeController {
     }
 
     @PostMapping("/{sedeId}/dispositivos")
-    public ResponseEntity<Dispositivo> registrarDispositivo(@PathVariable Long sedeId,
+    public ResponseEntity<?> registrarDispositivo(@PathVariable Long sedeId,
             @RequestBody Dispositivo dispositivo) {
+        // Validar unicidad si viene con estado ACTIVO
+        java.util.Optional<Dispositivo> existente = dispositivoRepository.findByUuidHardware(dispositivo.getUuidHardware());
+        if (existente.isPresent() && existente.get().getEstado() == Dispositivo.EstadoDispositivo.ACTIVO && 
+            dispositivo.getEstado() == Dispositivo.EstadoDispositivo.ACTIVO) {
+            return ResponseEntity.badRequest()
+                .body(java.util.Map.of("mensaje", "Este dispositivo ya se encuentra activo en otra sede (" + existente.get().getSede().getNombre() + ")"));
+        }
+
         return sedeRepository.findById(sedeId).map(sede -> {
             dispositivo.setSede(sede);
             dispositivo.setEmpresa(sede.getEmpresa()); // Heredar empresa de la sede

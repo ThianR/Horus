@@ -42,13 +42,13 @@ const WelcomePage = () => {
                         <Camera size={48} className="text-blue-400" />
                     </div>
 
-                    <h2 className="text-3xl font-bold mb-3 tracking-tight group-hover:text-blue-300 transition-colors self-center">Sistema de Marcación</h2>
+                    <h2 className="text-3xl font-bold mb-3 tracking-tight group-hover:text-blue-300 transition-colors self-center">Oculus Point</h2>
                     <p className="text-gray-400 text-center text-sm leading-relaxed max-w-[250px] self-center">
-                        Acceso rápido para empleados. Registro de entrada y salida vía reconocimiento facial.
+                        Punto de acceso biométrico para empleados. Registro de entrada y salida vía reconocimiento facial.
                     </p>
 
                     <div className="mt-8 px-6 py-2 rounded-full border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-widest group-hover:bg-blue-600 group-hover:text-white transition-all self-center">
-                        Ir al Kiosco
+                        Acceder al punto
                     </div>
                 </button>
 

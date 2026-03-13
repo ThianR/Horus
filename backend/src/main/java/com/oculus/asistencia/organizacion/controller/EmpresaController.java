@@ -44,6 +44,7 @@ public class EmpresaController {
             existing.setDireccion(empresa.getDireccion());
             existing.setTelefono(empresa.getTelefono());
             existing.setActivo(empresa.isActivo());
+            existing.setCierreDiaAutomatico(empresa.isCierreDiaAutomatico());
             return ResponseEntity.ok(empresaRepository.save(existing));
         }).orElse(ResponseEntity.notFound().build());
     }

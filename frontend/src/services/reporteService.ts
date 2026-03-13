@@ -61,5 +61,17 @@ export const reporteService = {
                 'Content-Type': 'multipart/form-data'
             }
         });
+    },
+
+    getAsistencias: async (filtros: { inicio?: string, fin?: string, sedeId?: number, empleadoId?: number }) => {
+        const response = await api.get('/reportes', { params: filtros });
+        return response.data;
+    },
+
+    ejecutarCierreManual: async (empresaId: number, fecha?: string) => {
+        const response = await api.post(`/motor/cierre/${empresaId}`, null, {
+            params: { fecha }
+        });
+        return response.data;
     }
 };

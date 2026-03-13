@@ -7,6 +7,7 @@ export interface Empresa {
   direccion: string;
   telefono: string;
   activo: boolean;
+  cierreDiaAutomatico: boolean;
 }
 
 const empresaService = {

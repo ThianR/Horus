@@ -1,10 +1,22 @@
 package com.oculus.asistencia.organizacion.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString(exclude = {"empresa", "turnoDefecto", "marcaciones", "dispositivos", "paquetes"})
+@EqualsAndHashCode(exclude = {"empresa", "turnoDefecto", "marcaciones", "dispositivos", "paquetes"})
 @Entity
 @Table(name = "sede")
 public class Sede {
@@ -36,9 +48,10 @@ public class Sede {
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "segmentos" })
     private com.oculus.asistencia.turnos.model.TurnoPlantilla turnoDefecto;
 
-    @Column(name = "dias_turno_defecto")
+    @Builder.Default
     private String diasTurnoDefecto = "LUN,MAR,MIE,JUE,VIE";
 
+    @Builder.Default
     @OneToMany(mappedBy = "sede", cascade = CascadeType.ALL, orphanRemoval = true)
     @com.fasterxml.jackson.annotation.JsonIgnore
     private java.util.List<com.oculus.asistencia.marcas.model.MarcacionEvento> marcaciones = new java.util.ArrayList<>();

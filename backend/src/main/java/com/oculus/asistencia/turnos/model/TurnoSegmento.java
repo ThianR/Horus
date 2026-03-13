@@ -1,10 +1,22 @@
 package com.oculus.asistencia.turnos.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 import java.time.LocalTime;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString(exclude = {"turnoPlantilla"})
+@EqualsAndHashCode(exclude = {"turnoPlantilla"})
 @Entity
 @Table(name = "turno_segmento")
 public class TurnoSegmento {

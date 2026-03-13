@@ -4,15 +4,23 @@ import { LogIn, Home } from 'lucide-react';
 import axios from 'axios';
 import OculusLogo from '../components/common/OculusLogo';
 import eyeLogo from '../assets/eye.svg';
+import { getPersistentDeviceId } from '../utils/deviceFingerprint';
 
 const LoginPage = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [hardwareId, setHardwareId] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
+        const getHW = async () => {
+            const id = await getPersistentDeviceId();
+            setHardwareId(id);
+        };
+        getHW();
+        
         if (localStorage.getItem('token')) {
             navigate('/admin');
         }
@@ -105,6 +113,31 @@ const LoginPage = () => {
                         {loading ? 'Validando acceso...' : 'Ingresar al Sistema'}
                     </button>
                 </form>
+
+                {/* ID de Hardware para Depuración/Registro */}
+                <div className="mt-8 p-4 bg-white/5 rounded-2xl border border-white/5 w-full">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">ID de Hardware Actual</span>
+                        <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                        <code className="text-xs text-blue-400 font-mono break-all line-clamp-1">{hardwareId || 'Generando...'}</code>
+                        <button 
+                            onClick={() => {
+                                navigator.clipboard.writeText(hardwareId);
+                                alert('Hardware ID copiado al portapapeles');
+                            }}
+                            className="text-[10px] bg-white/10 hover:bg-white/20 px-2 py-1 rounded text-gray-300 transition-all font-bold uppercase"
+                        >
+                            Copiar
+                        </button>
+                    </div>
+                    <p className="text-[9px] text-gray-600 mt-2 leading-tight">
+                        Si este dispositivo ya está registrado, verifique que el ID coincida en el panel de administración.
+                    </p>
+                </div>
 
                 <div className="mt-10 text-[10px] text-gray-500 border-t border-white/5 pt-5 w-full text-center uppercase tracking-[0.2em]">
                     Oculus Security &middot; Versión 1.0.0 &copy; 2026

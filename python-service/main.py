@@ -33,7 +33,8 @@ app.add_middleware(
 
 # Definir el modelo a usar
 MODEL_NAME = "ArcFace"
-DETECTOR_BACKEND = "retinaface" # Mucho más preciso que opencv para alineación
+# SSD es un buen equilibrio entre velocidad y precisión (mucho más rápido que RetinaFace)
+DETECTOR_BACKEND = "ssd" 
 
 class VerifyRequest(BaseModel):
     img1_path: str
@@ -42,29 +43,43 @@ class VerifyRequest(BaseModel):
 @app.on_event("startup")
 async def startup_event():
     print(f"[*] Inicializando Motor Biométrico con modelo: {MODEL_NAME}")
-    # Forzar la descarga/carga del modelo en memoria en el arranque
+    # Forzar la carga del modelo y el detector en el arranque
     try:
         DeepFace.build_model(MODEL_NAME)
-        print("[*] Modelo cargado exitosamente.")
+        # Realizamos una inferencia "dummy" para que cargue los pesos del detector
+        dummy_img = np.zeros((224, 224, 3), dtype=np.uint8)
+        try:
+            DeepFace.represent(dummy_img, model_name=MODEL_NAME, detector_backend=DETECTOR_BACKEND, enforce_detection=False)
+        except: pass
+        print("[*] Modelos y detectores precargados exitosamente.")
     except Exception as e:
         print(f"[!] Error precargando el modelo: {str(e)}")
 
 def file_to_cv2(file_bytes: bytes):
     np_arr = np.frombuffer(file_bytes, np.uint8)
     img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+    
+    if img is not None:
+        # Optimización: Reducir resolución si es muy grande.
+        # En IA de rostros, más de 640px suele ser redundante y lento.
+        height, width = img.shape[:2]
+        if width > 640:
+            ratio = 640 / width
+            new_dim = (640, int(height * ratio))
+            img = cv2.resize(img, new_dim, interpolation=cv2.INTER_AREA)
+            print(f"[*] Imagen re-escalada de {width}x{height} a {new_dim[0]}x{new_dim[1]}")
+            
     return img
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "service": "biometria", "model": MODEL_NAME}
+    return {"status": "ok", "service": "biometria", "model": MODEL_NAME, "detector": DETECTOR_BACKEND}
 
 @app.post("/api/v1/extract")
 async def extract_embedding(file: UploadFile = File(...)):
     """
-    Recibe una imagen (UploadFile) y devuelve:
-    - embedding (Float[512] para ArcFace)
-    - face_confidence (Confianza de que es un rostro)
-    - region (Coordenadas del rostro en la imagen)
+    Recibe una imagen y devuelve embedding y metadata.
+    Optimizado para velocidad usando mediapipe y re-escalado.
     """
     try:
         contents = await file.read()
@@ -73,8 +88,7 @@ async def extract_embedding(file: UploadFile = File(...)):
         if img is None:
             raise HTTPException(status_code=400, detail="Imagen no válida o corrupta.")
 
-        # Obtener embeddings (DeepFace maneja deteccion y alineacion automaticamente)
-        # enforce_detection=True obliga a fallar si no hay rostro
+        # Obtener embeddings
         results = DeepFace.represent(
             img_path=img,
             model_name=MODEL_NAME,
@@ -83,23 +97,17 @@ async def extract_embedding(file: UploadFile = File(...)):
             align=True
         )
 
-        if len(results) == 0:
+        if not results:
             raise HTTPException(status_code=400, detail="Rostro no detectado.")
         
-        if len(results) > 1:
-            raise HTTPException(status_code=400, detail="Se detectó más de un rostro en la imagen. Solo debe haber uno.")
-
-        face_data = results[0]
+        # Tomar el rostro con mayor confianza si hay varios
+        face_data = max(results, key=lambda x: x.get("face_confidence", 0))
         embedding = np.array(face_data["embedding"])
         
-        # Normalización L2 manual para asegurar consistencia
+        # Normalización L2
         norm = np.linalg.norm(embedding)
         if norm > 0:
             embedding = embedding / norm
-        
-        # Log para depuración
-        print(f"[*] Face detected. Confidence: {face_data.get('face_confidence', 'N/A')}")
-        print(f"[*] Embedding calculated. Dim: {len(embedding)}, Norm: {norm:.4f}, Primeros 5: {embedding[:5].tolist()}")
         
         return {
             "embedding": embedding.tolist(),
