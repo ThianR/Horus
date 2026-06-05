@@ -10,6 +10,17 @@ SET MAVEN_HOME=C:\apache-maven-3.8.8
 SET JAVA_HOME=C:\Program Files\Java\jdk-21
 SET PATH=%JAVA_HOME%\bin;%MAVEN_HOME%\bin;%PATH%
 
+:: Cargar archivo .env local si existe (para JWT_SECRET y otras claves)
+if exist ".env" (
+    echo [+] Cargando variables de entorno desde .env local...
+    for /F "usebackq tokens=1* delims==" %%A in (".env") do (
+        set %%A=%%B
+    )
+) else (
+    echo [!] ADVERTENCIA: No se encontro el archivo .env. Esto podria causar fallos por JWT_SECRET faltante. 
+    echo     Revisa el archivo .env.example
+)
+
 :: 1. Limpiar Puertos (8000 Backend, 8001 Python, 5173 Frontend)
 echo [+] Comprobando puertos 8000, 8001 y 5173...
 powershell -Command "$ports = @(8000, 8001, 5173); foreach ($port in $ports) { $conn = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue; if ($conn) { foreach ($c in $conn) { Stop-Process -Id $c.OwningProcess -Force -ErrorAction SilentlyContinue } Write-Host \" [+] Puerto $port liberado.\" } }"

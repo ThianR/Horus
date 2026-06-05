@@ -11,6 +11,7 @@ import OrganizacionPage from './pages/OrganizacionPage';
 import WelcomePage from './pages/WelcomePage';
 import ReportesPage from './pages/ReportesPage';
 import ConfiguracionPage from './pages/ConfiguracionPage';
+import AsistenciasPage from './pages/AsistenciasPage';
 
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { dispositivoAuthService } from './services/dispositivoService';
@@ -66,6 +67,7 @@ function App() {
                                     <Route path="empleados" element={<EmpleadosPage />} />
                                     <Route path="horarios" element={<HorariosPage />} />
                                     <Route path="reportes" element={<ReportesPage />} />
+                                    <Route path="asistencias" element={<AsistenciasPage />} />
                                     <Route path="organizacion" element={<OrganizacionPage />} />
                                     <Route path="configuracion" element={<ConfiguracionPage />} />
                                     <Route path="*" element={<Navigate to="dashboard" replace />} />

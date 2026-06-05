@@ -187,6 +187,7 @@ public class MotorAsistenciaService {
         asistencia.setTurnoAsignado(asignacion.getTurnoPlantilla());
         asistencia.setEstadoAsistencia(AsistenciaDia.EstadoAsistencia.INCOMPLETO);
         asistencia.setValidadoPorSupervisor(false);
+        asistencia.setEmpresa(evento.getEmpleado().getEmpresa());
         return asistencia;
     }
 }

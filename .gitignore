@@ -49,3 +49,7 @@ python-service/venv/
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Directorio temporal y de diagnóstico
+temp/*
+!temp/.gitkeep

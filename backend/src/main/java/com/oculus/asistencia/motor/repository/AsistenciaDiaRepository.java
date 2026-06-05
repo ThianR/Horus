@@ -16,6 +16,8 @@ public interface AsistenciaDiaRepository extends JpaRepository<AsistenciaDia, Lo
 
     List<AsistenciaDia> findByFechaLaboralBetween(LocalDate inicio, LocalDate fin);
 
+    List<AsistenciaDia> findAllByEmpresaIdAndFechaLaboralBetweenOrderByFechaLaboralDesc(Long empresaId, LocalDate inicio, LocalDate fin);
+
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(a) FROM AsistenciaDia a WHERE a.fechaLaboral = :fecha AND a.empresa.id = :empresaId")
     long countTotalAsistenciasPorFechaAndEmpresaId(@org.springframework.data.repository.query.Param("fecha") LocalDate fecha, @org.springframework.data.repository.query.Param("empresaId") Long empresaId);
 
