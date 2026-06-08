@@ -17,6 +17,8 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import { dispositivoAuthService } from './services/dispositivoService';
 import { Globe, Shield } from 'lucide-react';
 
+import { ConfirmProvider } from './contexts/ConfirmContext';
+
 function App() {
     const [isValidating, setIsValidating] = useState(true);
     const [isDeviceAuthorized, setIsDeviceAuthorized] = useState(false);
@@ -49,6 +51,7 @@ function App() {
 
     return (
         <BrowserRouter>
+            <ConfirmProvider>
             <Toaster position="top-right" theme="dark" richColors expand closeButton />
             <Routes>
                 {/* Ruta raíz condicional */}
@@ -81,6 +84,7 @@ function App() {
                 } />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            </ConfirmProvider>
         </BrowserRouter>
     );
 }

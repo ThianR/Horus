@@ -127,7 +127,7 @@ const LoginPage = () => {
                         <button 
                             onClick={() => {
                                 navigator.clipboard.writeText(hardwareId);
-                                alert('Hardware ID copiado al portapapeles');
+                                toast.success('Hardware ID copiado al portapapeles');
                             }}
                             className="text-[10px] bg-white/10 hover:bg-white/20 px-2 py-1 rounded text-gray-300 transition-all font-bold uppercase"
                         >

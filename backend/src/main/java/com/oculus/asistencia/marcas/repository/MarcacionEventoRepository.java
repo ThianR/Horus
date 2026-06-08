@@ -21,6 +21,8 @@ public interface MarcacionEventoRepository extends JpaRepository<MarcacionEvento
 
     java.util.List<MarcacionEvento> findAllByEmpresaId(Long empresaId);
 
+    org.springframework.data.domain.Page<MarcacionEvento> findAllByEmpresaIdAndTimestampEventoBetween(Long empresaId, LocalDateTime inicio, LocalDateTime fin, org.springframework.data.domain.Pageable pageable);
+
     @org.springframework.data.jpa.repository.Modifying
     @org.springframework.data.jpa.repository.Query("DELETE FROM MarcacionEvento m WHERE m.empleado.id = :empleadoId")
     void deleteByEmpleadoId(@org.springframework.data.repository.query.Param("empleadoId") Long empleadoId);

@@ -54,6 +54,7 @@ public class Dispositivo {
     @Column(name = "last_heartbeat")
     private LocalDateTime lastHeartbeat;
 
+    @Builder.Default
     @OneToMany(mappedBy = "dispositivo", cascade = CascadeType.ALL, orphanRemoval = true)
     @com.fasterxml.jackson.annotation.JsonIgnore
     private java.util.List<com.oculus.asistencia.marcas.model.MarcacionEvento> marcaciones = new java.util.ArrayList<>();

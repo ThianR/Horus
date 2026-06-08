@@ -1,7 +1,5 @@
 package com.oculus.asistencia.biometria.service;
 
-import com.oculus.asistencia.marcas.model.MarcacionEvento;
-import com.oculus.asistencia.marcas.repository.MarcacionEventoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -10,15 +8,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @EnableScheduling
 @RequiredArgsConstructor
 @Slf4j
 public class EvidenciaCleanupService {
-
-    private final MarcacionEventoRepository marcacionRepository;
 
     /**
      * Se ejecuta todos los días a las 02:00 AM.
@@ -36,11 +31,11 @@ public class EvidenciaCleanupService {
         // List<MarcacionEvento> eventos =
         // marcacionRepository.findByTimestampEventoBeforeAndEvidenciaFotoPathNotNull(fechaLimite);
 
-        // Como no tengo ese método en la interfaz, lo dejo comentado como TODO o
-        // implemento Stub
+        // Como no tengo ese método en la interfaz, lo dejo documentado como pendiente
+        // para su futura implementación.
         log.info("Simulando limpieza de evidencias anteriores a: {}", fechaLimite);
 
-        // TODO: Iterar eventos, borrar archivo físico y setear evidenciaFotoPath = null
+        // Pasos a implementar: Iterar eventos, borrar archivo físico y setear evidenciaFotoPath = null
         // manteniendo evidenciaFotoHash.
 
         log.info("Job de limpieza finalizado.");

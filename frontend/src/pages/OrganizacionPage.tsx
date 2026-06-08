@@ -11,6 +11,7 @@ import { Sede, Dispositivo, sedeService, dispositivoService } from '../services/
 import { TurnoPlantilla, turnoService } from '../services/turnoService';
 import { toast } from 'sonner';
 import DiasSemanaBadge from '../components/DiasSemanaBadge';
+import { useConfirm } from '../contexts/ConfirmContext';
 
 // Componente de Selector Premium con Glassmorphism - MEJORADO CON FONDO DIFUMINADO OPACO
 const PremiumSelect = ({ label, value, options, onChange, icon: Icon, placeholder = "Seleccionar..." }: any) => {
@@ -79,6 +80,7 @@ const PremiumSelect = ({ label, value, options, onChange, icon: Icon, placeholde
 };
 
 const OrganizacionPage = () => {
+    const { confirm } = useConfirm();
     // Estados de navegación
     const [view, setView] = useState<'empresas' | 'sedes' | 'dispositivos'>('empresas');
     const [selectedEmpresa, setSelectedEmpresa] = useState<Empresa | null>(null);
@@ -242,35 +244,35 @@ const OrganizacionPage = () => {
     };
 
     const deleteEmpresa = async (id: number) => {
-        if (!window.confirm("¿Está seguro de eliminar esta empresa? Se borrarán todas sus sedes y dispositivos asociados.")) return;
+        if (!(await confirm({ message: "¿Está seguro de eliminar esta empresa? Se borrarán todas sus sedes y dispositivos asociados.", type: 'danger' }))) return;
         try {
             await empresaService.delete(id);
             toast.success("Empresa eliminada correctamente");
             cargarEmpresas();
-        } catch (error) {
-            toast.error("Error al eliminar empresa (Verifique si tiene registros asociados)");
+        } catch (error: any) {
+            toast.error(error.response?.data?.mensaje || "Error al eliminar empresa");
         }
     };
 
     const deleteSede = async (id: number) => {
-        if (!window.confirm("¿Está seguro de eliminar esta sede?")) return;
+        if (!(await confirm({ message: "¿Está seguro de eliminar esta sede?", type: 'danger' }))) return;
         try {
             await sedeService.delete(id);
             toast.success("Sede eliminada correctamente");
             if (selectedEmpresa) cargarSedes(selectedEmpresa.id!);
-        } catch (error) {
-            toast.error("Error al eliminar sede");
+        } catch (error: any) {
+            toast.error(error.response?.data?.mensaje || "Error al eliminar sede");
         }
     };
 
     const deleteDispositivo = async (id: number) => {
-        if (!window.confirm("¿Está seguro de eliminar este dispositivo?")) return;
+        if (!(await confirm({ message: "¿Está seguro de eliminar este dispositivo?", type: 'danger' }))) return;
         try {
             await dispositivoService.delete(id);
             toast.success("Dispositivo eliminado");
             if (selectedSede) cargarDispositivos(selectedSede.id);
-        } catch (error) {
-            toast.error("Error al eliminar dispositivo");
+        } catch (error: any) {
+            toast.error(error.response?.data?.mensaje || "Error al eliminar dispositivo");
         }
     };
 
@@ -339,7 +341,7 @@ const OrganizacionPage = () => {
 
                 <div className="relative z-10">
                     {view === 'empresas' && (
-                        <button onClick={() => { setEmpresaForm({ nombre: '', identificacionFiscal: '', activo: true, cierreDiaAutomatico: false }); setShowEmpresaModal(true); }} className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-8 py-4 rounded-[1.5rem] font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95">
+                        <button id="tour-btn-nueva-empresa" onClick={() => { setEmpresaForm({ nombre: '', identificacionFiscal: '', activo: true, cierreDiaAutomatico: false }); setShowEmpresaModal(true); }} className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-8 py-4 rounded-[1.5rem] font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95">
                             <Plus size={20} /> Nueva Empresa
                         </button>
                     )}
@@ -503,7 +505,7 @@ const OrganizacionPage = () => {
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Razón Social Corporativa</label>
                                 <div className="relative">
                                     <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                                    <input required type="text" value={empresaForm.nombre} onChange={e => setEmpresaForm({...empresaForm, nombre: e.target.value})} className="form-input pl-12 font-black" placeholder="Ej: Oculus Technologies S.A." />
+                                    <input id="tour-org-nombre" required type="text" value={empresaForm.nombre} onChange={e => setEmpresaForm({...empresaForm, nombre: e.target.value})} className="form-input pl-12 font-black" placeholder="Ej: Oculus Technologies S.A." />
                                 </div>
                             </div>
                             <div className="space-y-1.5">
@@ -526,7 +528,7 @@ const OrganizacionPage = () => {
                             
                             <div className="flex gap-4 pt-6">
                                 <button type="button" onClick={() => setShowEmpresaModal(false)} className="flex-1 px-8 py-4 bg-slate-900 border border-white/5 text-slate-400 rounded-2xl font-black transition-all uppercase text-[10px] tracking-widest active:scale-95">Descartar</button>
-                                <button type="submit" className="flex-1 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black shadow-2xl shadow-blue-600/40 flex items-center justify-center gap-2 transition-all uppercase text-[10px] tracking-[0.15em] active:scale-95"><Save size={18} /> Formalizar</button>
+                                <button id="tour-org-guardar" type="submit" className="flex-1 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black shadow-2xl shadow-blue-600/40 flex items-center justify-center gap-2 transition-all uppercase text-[10px] tracking-[0.15em] active:scale-95"><Save size={18} /> Formalizar</button>
                             </div>
                         </form>
                     </div>

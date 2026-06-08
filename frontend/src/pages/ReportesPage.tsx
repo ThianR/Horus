@@ -10,8 +10,10 @@ import { sedeService, Sede } from '../services/sedeService';
 import empresaService from '../services/empresaService';
 import { toast } from 'sonner';
 import { Lock } from 'lucide-react';
+import { useConfirm } from '../contexts/ConfirmContext';
 
 const ReportesPage = () => {
+    const { confirm } = useConfirm();
     const [loading, setLoading] = useState<string | null>(null);
     const [asistencias, setAsistencias] = useState<any[]>([]);
     const [sedes, setSedes] = useState<Sede[]>([]);
@@ -100,7 +102,7 @@ const ReportesPage = () => {
     const handleCierreManual = async () => {
         if (!empresaActual?.id) return;
         
-        const ok = window.confirm(`¿Estás seguro de cerrar el día ${filtros.fin}? Se procesarán las faltas para todos los empleados activos sin registro.`);
+        const ok = await confirm({ message: `¿Estás seguro de cerrar el día ${filtros.fin}? Se procesarán las faltas para todos los empleados activos sin registro.`, type: 'warning' });
         if (!ok) return;
 
         setLoading('cierre');

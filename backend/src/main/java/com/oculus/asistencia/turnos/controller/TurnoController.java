@@ -54,11 +54,17 @@ public class TurnoController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+    public ResponseEntity<?> eliminar(@PathVariable Long id) {
         if (!turnoRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-        turnoRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        try {
+            turnoRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("mensaje", "No se puede eliminar la plantilla de turno porque está asignada a empleados o definida por defecto en alguna sede."));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(java.util.Map.of("mensaje", "Error inesperado al eliminar el turno."));
+        }
     }
 }

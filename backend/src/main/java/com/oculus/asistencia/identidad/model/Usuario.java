@@ -35,7 +35,12 @@ public class Usuario {
     @Enumerated(EnumType.STRING)
     private Rol rol;
 
+    @Builder.Default
     private boolean activo = true;
+
+    @Column(name = "tour_completado")
+    @Builder.Default
+    private boolean tourCompletado = false;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;

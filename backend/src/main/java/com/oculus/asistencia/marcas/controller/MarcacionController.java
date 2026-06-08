@@ -6,6 +6,7 @@ import com.oculus.asistencia.marcas.repository.MarcacionEventoRepository;
 import com.oculus.asistencia.motor.service.MotorAsistenciaService;
 import com.oculus.asistencia.rrhh.model.Empleado;
 import com.oculus.asistencia.rrhh.repository.EmpleadoRepository;
+import com.oculus.asistencia.integraciones.service.WebhookDispatcherService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,7 @@ public class MarcacionController {
     private final com.oculus.asistencia.organizacion.service.EmpresaService empresaService;
     private final com.oculus.asistencia.organizacion.repository.SedeRepository sedeRepository;
     private final com.oculus.asistencia.rrhh.repository.EmpleadoSedeHabilitadaRepository sedeHabilitadaRepository;
+    private final WebhookDispatcherService webhookDispatcherService;
 
     @PostMapping("/registrar")
     public ResponseEntity<?> registrarMarcacion(@RequestBody MarcacionDto dto) {
@@ -177,6 +179,9 @@ public class MarcacionController {
             intento.setExito(true);
             marcacionRepository.save(evento);
             intentoRepository.save(intento);
+
+            // Despachar webhook asíncronamente
+            webhookDispatcherService.dispatchMarcacion(evento);
 
             // Retornar información del empleado para el Kiosco
             return ResponseEntity.ok(new MarcacionRespuesta(

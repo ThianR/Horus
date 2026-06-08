@@ -1,0 +1,1 @@
+ALTER TABLE usuario ADD COLUMN tour_completado BOOLEAN DEFAULT FALSE;

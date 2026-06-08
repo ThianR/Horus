@@ -86,6 +86,7 @@ const Sidebar = ({ mobileOpen = false, onMobileClose }: SidebarProps) => {
           {menuItems.map((item) => (
             <NavLink
               key={item.path}
+              id={item.label === 'Organización' ? 'tour-menu-organizacion' : undefined}
               to={item.path}
               onClick={handleNavClick}
               className={({ isActive }) => `

@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -21,6 +20,8 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenUtil jwtTokenUtil;
     private final UserDetailsService userDetailsService;
+
+    private final com.oculus.asistencia.identidad.repository.UsuarioRepository usuarioRepository;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest login) {
@@ -33,9 +34,41 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponse(token));
     }
 
+    @org.springframework.web.bind.annotation.GetMapping("/me")
+    public ResponseEntity<?> me(org.springframework.security.core.Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build();
+        }
+        String username = authentication.getName();
+        return usuarioRepository.findByUsername(username)
+                .map(user -> ResponseEntity.ok(new UserResponse(
+                        user.getId(),
+                        user.getUsername(),
+                        user.getRol().name(),
+                        user.isTourCompletado()
+                )))
+                .orElse(ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build());
+    }
+
+    @PostMapping("/tour-completado")
+    public ResponseEntity<?> completarTour(org.springframework.security.core.Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build();
+        }
+        String username = authentication.getName();
+        return usuarioRepository.findByUsername(username).map(user -> {
+            user.setTourCompletado(true);
+            usuarioRepository.save(user);
+            return ResponseEntity.ok().build();
+        }).orElse(ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build());
+    }
+
     public record LoginRequest(String username, String password) {
     }
 
     public record AuthResponse(String token) {
+    }
+
+    public record UserResponse(Long id, String username, String rol, boolean tourCompletado) {
     }
 }

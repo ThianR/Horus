@@ -72,10 +72,12 @@ public class BiometriaClient {
 
     public Map<String, Object> checkHealth() {
         try {
-            ResponseEntity<Map> response = restTemplate.getForEntity(
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                     pythonServiceUrl + "/health",
-                    Map.class);
-            return (Map<String, Object>) response.getBody();
+                    org.springframework.http.HttpMethod.GET,
+                    null,
+                    new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {});
+            return response.getBody();
         } catch (Exception e) {
             log.warn("El servicio de biometría Python no responde en {}: {}", pythonServiceUrl, e.getMessage());
             return Map.of("status", "error", "message", e.getMessage());

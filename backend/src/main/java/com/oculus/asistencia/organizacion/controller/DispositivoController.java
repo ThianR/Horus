@@ -87,11 +87,17 @@ public class DispositivoController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+    public ResponseEntity<?> eliminar(@PathVariable Long id) {
         if (!dispositivoRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-        dispositivoRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        try {
+            dispositivoRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("mensaje", "No se puede eliminar el dispositivo porque tiene marcaciones o registros asociados que lo bloquean."));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(java.util.Map.of("mensaje", "Error inesperado al eliminar el dispositivo."));
+        }
     }
 }

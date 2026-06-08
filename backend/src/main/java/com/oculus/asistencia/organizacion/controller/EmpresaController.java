@@ -50,11 +50,17 @@ public class EmpresaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+    public ResponseEntity<?> eliminar(@PathVariable Long id) {
         if (!empresaRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-        empresaRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        try {
+            empresaRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("mensaje", "No se puede eliminar la empresa porque tiene sedes o registros asociados."));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(java.util.Map.of("mensaje", "Ocurrió un error inesperado al eliminar la empresa."));
+        }
     }
 }

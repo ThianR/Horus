@@ -59,10 +59,12 @@ public class Sede {
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Builder.Default
     @OneToMany(mappedBy = "sede", cascade = CascadeType.ALL, orphanRemoval = true)
     @com.fasterxml.jackson.annotation.JsonIgnore
     private java.util.List<Dispositivo> dispositivos = new java.util.ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "sede", cascade = CascadeType.ALL, orphanRemoval = true)
     @com.fasterxml.jackson.annotation.JsonIgnore
     private java.util.List<com.oculus.asistencia.biometria.model.PaqueteEmbeddings> paquetes = new java.util.ArrayList<>();

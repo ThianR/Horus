@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react';
 import { Plus, Search, Clock, Edit2, Trash2, CalendarCheck } from 'lucide-react';
 import { turnoService, TurnoPlantilla } from '../services/turnoService';
 import TurnoForm from '../components/TurnoForm';
+import { useConfirm } from '../contexts/ConfirmContext';
+import { toast } from 'sonner';
 
 const HorariosPage = () => {
+    const { confirm } = useConfirm();
     const [turnos, setTurnos] = useState<TurnoPlantilla[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -157,9 +160,14 @@ const HorariosPage = () => {
                                                 </button>
                                                 <button
                                                     onClick={async () => {
-                                                        if (confirm('¿Eliminar esta plantilla de turno?')) {
-                                                            await turnoService.eliminar(turno.id!);
-                                                            cargarTurnos();
+                                                        if (await confirm({ message: '¿Eliminar esta plantilla de turno?', type: 'danger' })) {
+                                                            try {
+                                                                await turnoService.eliminar(turno.id!);
+                                                                toast.success('Plantilla de turno eliminada');
+                                                                cargarTurnos();
+                                                            } catch (error: any) {
+                                                                toast.error(error.response?.data?.mensaje || 'Error al eliminar la plantilla de turno');
+                                                            }
                                                         }
                                                     }}
                                                     className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"

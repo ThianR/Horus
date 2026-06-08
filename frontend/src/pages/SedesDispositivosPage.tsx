@@ -3,8 +3,10 @@ import { MapPin, Server, Search, Plus, Trash2, Edit2, Play, Pause, AlertCircle, 
 import { Sede, Dispositivo, sedeService, dispositivoService } from '../services/sedeService';
 import { TurnoPlantilla, turnoService } from '../services/turnoService';
 import DiasSemanaBadge from '../components/DiasSemanaBadge';
+import { useConfirm } from '../contexts/ConfirmContext';
 
 const SedesDispositivosPage = () => {
+    const { confirm } = useConfirm();
     const [sedes, setSedes] = useState<Sede[]>([]);
     const [dispositivos, setDispositivos] = useState<Dispositivo[]>([]);
     const [loadingSedes, setLoadingSedes] = useState(true);
@@ -104,13 +106,14 @@ const SedesDispositivosPage = () => {
     };
 
     const handleDeleteSede = async (id: number) => {
-        if (!confirm('¿Estás seguro de eliminar esta sede y sus dispositivos asociados?')) return;
+        if (!(await confirm({ message: '¿Estás seguro de eliminar esta sede y sus dispositivos asociados?', type: 'danger' }))) return;
         try {
             await sedeService.delete(id);
             if (selectedSedeId === id) setSelectedSedeId(null);
             cargarSedes();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error eliminando sede:', error);
+            toast.error(error.response?.data?.mensaje || "Error al eliminar sede");
         }
     };
 
@@ -131,12 +134,13 @@ const SedesDispositivosPage = () => {
     };
 
     const handleDeleteDispositivo = async (id: number) => {
-        if (!confirm('¿Estás seguro de eliminar este dispositivo biométrico?')) return;
+        if (!(await confirm({ message: '¿Estás seguro de eliminar este dispositivo biométrico?', type: 'danger' }))) return;
         try {
             await dispositivoService.delete(id);
             if (selectedSedeId) cargarDispositivos(selectedSedeId);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error eliminando dispositivo:', error);
+            toast.error(error.response?.data?.mensaje || "Error al eliminar dispositivo");
         }
     };
 

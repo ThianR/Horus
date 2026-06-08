@@ -7,11 +7,27 @@ interface AdminLayoutProps {
 }
 
 import eyeLogo from '../../assets/eye.svg';
+import { OnboardingProvider, useOnboarding } from '../../contexts/OnboardingContext';
+import { HelpCircle } from 'lucide-react';
+
+const TopbarHelpButton = () => {
+    const { startTour } = useOnboarding();
+    return (
+        <button
+            onClick={startTour}
+            className="p-2 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-colors ml-auto"
+            title="Iniciar Guía Interactiva"
+        >
+            <HelpCircle size={22} />
+        </button>
+    );
+};
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     return (
+        <OnboardingProvider>
         <div className="flex min-h-screen bg-[#0f172a] text-white">
             {/* Sidebar: fijo en desktop, drawer en mobile */}
             <Sidebar
@@ -30,8 +46,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     >
                         <Menu size={22} />
                     </button>
-                    <img src={eyeLogo} alt="Logo" className="w-6 h-6" />
-                    <span className="text-base font-bold text-gradient">Oculus Admin</span>
+                    <img src={eyeLogo} alt="Logo" className="w-6 h-6 hidden lg:block" />
+                    <span className="text-base font-bold text-gradient lg:hidden">Oculus Admin</span>
+                    <TopbarHelpButton />
                 </header>
 
                 {/* Área de contenido */}
@@ -47,6 +64,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 </main>
             </div>
         </div>
+        </OnboardingProvider>
     );
 };
 

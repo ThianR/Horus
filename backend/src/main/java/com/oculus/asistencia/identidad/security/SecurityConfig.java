@@ -19,6 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtFilter;
+    private final com.oculus.asistencia.integraciones.security.ApiKeyAuthenticationFilter apiKeyFilter;
     private final org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource;
 
     @Bean
@@ -30,13 +31,17 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/marcaciones/identificar").permitAll()
                         .requestMatchers("/api/biometria/**").permitAll()
+                        .requestMatchers("/api/v1/integraciones/**").permitAll() // La seguridad la maneja el ApiKeyAuthenticationFilter
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll() // Swagger
                         .requestMatchers("/api/**").permitAll() // Temporalmente más permisivo
                         .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .headers(headers -> headers.frameOptions(opts -> opts.disable())); // Para H2 Console
 
+        http.addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

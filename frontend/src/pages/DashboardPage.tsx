@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Users, Clock, AlertCircle, CheckCircle2, Search, ArrowUpRight, Activity, Calendar } from 'lucide-react';
 import { dashboardService, DashboardStats, EventoReciente, AsistenciaHoy } from '../services/dashboardService';
+import { authService } from '../services/authService';
+import { useOnboarding } from '../contexts/OnboardingContext';
 
 const DashboardPage = () => {
     const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -8,6 +10,7 @@ const DashboardPage = () => {
     const [asistencias, setAsistencias] = useState<AsistenciaHoy[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const { startTour } = useOnboarding();
 
     useEffect(() => {
         cargarDatos();
@@ -15,6 +18,17 @@ const DashboardPage = () => {
         const interval = setInterval(cargarDatos, 30000);
         return () => clearInterval(interval);
     }, []);
+
+    useEffect(() => {
+        authService.getCurrentUser().then(user => {
+            if (!user.tourCompletado) {
+                // Pequeño timeout para asegurar que el DOM está listo
+                setTimeout(() => {
+                    startTour();
+                }, 500);
+            }
+        }).catch(e => console.error("Error al obtener usuario:", e));
+    }, [startTour]);
 
     const cargarDatos = async () => {
         try {

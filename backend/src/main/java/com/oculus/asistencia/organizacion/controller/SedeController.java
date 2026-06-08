@@ -80,12 +80,18 @@ public class SedeController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+    public ResponseEntity<?> eliminar(@PathVariable Long id) {
         if (!sedeRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-        sedeRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        try {
+            sedeRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("mensaje", "No se puede eliminar la sede porque está siendo utilizada por empleados u otros registros."));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(java.util.Map.of("mensaje", "Ocurrió un error inesperado al eliminar la sede."));
+        }
     }
 
     // Gestión básica de dispositivos por sede

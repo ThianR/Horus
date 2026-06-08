@@ -211,28 +211,34 @@ public class EmpleadoController {
 
     @DeleteMapping("/{id}")
     @org.springframework.transaction.annotation.Transactional
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        return empleadoRepository.findById(id)
-                .map(empleado -> {
-                    // 1. Limpiar subordinados (quitar supervisor)
-                    List<Empleado> subordinados = empleadoRepository.findAll().stream()
-                            .filter(e -> e.getSupervisor() != null && e.getSupervisor().getId().equals(id))
-                            .toList();
-                    subordinados.forEach(s -> {
-                        s.setSupervisor(null);
-                        empleadoRepository.save(s);
-                    });
+    public ResponseEntity<?> eliminar(@PathVariable Long id) {
+        try {
+            return empleadoRepository.findById(id)
+                    .map(empleado -> {
+                        // 1. Limpiar subordinados (quitar supervisor)
+                        List<Empleado> subordinados = empleadoRepository.findAll().stream()
+                                .filter(e -> e.getSupervisor() != null && e.getSupervisor().getId().equals(id))
+                                .toList();
+                        subordinados.forEach(s -> {
+                            s.setSupervisor(null);
+                            empleadoRepository.save(s);
+                        });
 
-                    // 2. Limpiar dependencias en otras tablas
-                    marcacionEventoRepository.deleteByEmpleadoId(id);
-                    perfilBiometricoRepository.deleteByEmpleadoId(id);
-                    asignacionTurnoRepository.deleteByEmpleadoId(id);
-                    sedeHabilitadaRepository.deleteByEmpleado(empleado);
+                        // 2. Limpiar dependencias en otras tablas
+                        marcacionEventoRepository.deleteByEmpleadoId(id);
+                        perfilBiometricoRepository.deleteByEmpleadoId(id);
+                        asignacionTurnoRepository.deleteByEmpleadoId(id);
+                        sedeHabilitadaRepository.deleteByEmpleado(empleado);
 
-                    // 3. Borrar empleado
-                    empleadoRepository.delete(empleado);
-                    return ResponseEntity.noContent().<Void>build();
-                })
-                .orElse(ResponseEntity.notFound().build());
+                        // 3. Borrar empleado
+                        empleadoRepository.delete(empleado);
+                        return ResponseEntity.noContent().build();
+                    })
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("mensaje", "No se puede eliminar el empleado por restricciones de integridad en la base de datos."));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(java.util.Map.of("mensaje", "Error inesperado al eliminar el empleado."));
+        }
     }
 }

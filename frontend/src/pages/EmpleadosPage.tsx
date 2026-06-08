@@ -9,8 +9,10 @@ import EmpleadoForm from '../components/EmpleadoForm';
 import AsignacionHorarioModal from '../components/AsignacionHorarioModal';
 import RegistroBiometricoModal from '../components/RegistroBiometricoModal';
 import DiasSemanaBadge from '../components/DiasSemanaBadge';
+import { useConfirm } from '../contexts/ConfirmContext';
 
 const EmpleadosPage = () => {
+    const { confirm } = useConfirm();
     const [empleados, setEmpleados] = useState<Empleado[]>([]);
     const [empresas, setEmpresas] = useState<Empresa[]>([]);
     const [loading, setLoading] = useState(true);
@@ -120,7 +122,7 @@ const EmpleadosPage = () => {
             // Mostrar mensaje de éxito si hubiera toast
         } catch (error) {
             console.error('Error al asignar horarios:', error);
-            alert('Hubo un error al realizar la asignación masiva.');
+            toast.error('Hubo un error al realizar la asignación masiva.');
         }
     };
 
@@ -181,7 +183,13 @@ const EmpleadosPage = () => {
                                         
                                         // Opcional: Podría guardarse en el estado para mostrarlo en un Modal. 
                                         // Por ahora, usamos un alert con el desglose si son pocos, o en la consola.
-                                        alert(`Empleados procesados: ${resData.procesados}\nErrores (${resData.errores.length}):\n\n${resData.errores.slice(0,10).join('\\n')}${resData.errores.length > 10 ? '\\n...y mas' : ''}`);
+                                        await confirm({
+                                            title: 'Errores de Importación',
+                                            message: `Empleados procesados: ${resData.procesados}\nErrores (${resData.errores.length}):\n\n${resData.errores.slice(0, 10).join('\n')}${resData.errores.length > 10 ? '\n...y mas' : ''}`,
+                                            type: 'warning',
+                                            isAlert: true,
+                                            confirmText: 'Entendido'
+                                        });
                                     } else {
                                         toast.success(`Importación exitosa. ${resData.procesados} registros procesados.`, { id: toastId });
                                     }
@@ -447,25 +455,16 @@ const EmpleadosPage = () => {
                                                     </button>
                                                 )}
                                                 <button
-                                                    onClick={() => {
-                                                        toast(`¿Deseas eliminar permanentemente a ${emp.nombreCompleto}?`, {
-                                                            action: {
-                                                                label: 'Eliminar',
-                                                                onClick: async () => {
-                                                                    try {
-                                                                        await empleadoService.eliminar(emp.id!);
-                                                                        toast.success('Empleado eliminado');
-                                                                        cargarEmpleados();
-                                                                    } catch (error) {
-                                                                        toast.error('No se pudo eliminar al empleado');
-                                                                    }
-                                                                }
-                                                            },
-                                                            cancel: {
-                                                                label: 'Cancelar',
-                                                                onClick: () => { }
+                                                    onClick={async () => {
+                                                        if (await confirm({ message: `¿Deseas eliminar permanentemente a ${emp.nombreCompleto}?`, type: 'danger' })) {
+                                                            try {
+                                                                await empleadoService.eliminar(emp.id!);
+                                                                toast.success('Empleado eliminado');
+                                                                cargarEmpleados();
+                                                            } catch (error: any) {
+                                                                toast.error(error.response?.data?.mensaje || 'No se pudo eliminar al empleado');
                                                             }
-                                                        });
+                                                        }
                                                     }}
                                                     className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
                                                     title="Eliminar"
