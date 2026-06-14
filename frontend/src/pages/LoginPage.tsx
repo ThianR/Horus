@@ -4,7 +4,9 @@ import { LogIn, Home } from 'lucide-react';
 import axios from 'axios';
 import OculusLogo from '../components/common/OculusLogo';
 import eyeLogo from '../assets/eye.svg';
+import { toast } from 'sonner';
 import { getPersistentDeviceId } from '../utils/deviceFingerprint';
+import { useAuth } from '../contexts/AuthContext';
 
 const LoginPage = () => {
     const [username, setUsername] = useState('');
@@ -13,6 +15,7 @@ const LoginPage = () => {
     const [loading, setLoading] = useState(false);
     const [hardwareId, setHardwareId] = useState('');
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     useEffect(() => {
         const getHW = async () => {
@@ -37,10 +40,10 @@ const LoginPage = () => {
                 password
             });
 
-            // Store token in localStorage
-            localStorage.setItem('token', response.data.token);
-            console.log("Login exitoso:", username);
-            navigate('/admin');
+            if (response.data.token) {
+                await login(response.data.token);
+                navigate('/admin/dashboard');
+            }
         } catch (err: any) {
             setError(err.response?.data?.message || 'Error al iniciar sesión');
             console.error("Error de login:", err);

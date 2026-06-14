@@ -74,6 +74,9 @@ const KioscoPage = () => {
         const data = await dispositivoAuthService.validarDispositivoActual();
         if (data) {
             setDeviceDetails(data);
+        } else {
+            toast.error("Equipo no registrado", { description: "Debe registrar esta terminal antes de usar el Kiosco." });
+            navigate('/login');
         }
     };
 

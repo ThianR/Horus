@@ -22,6 +22,7 @@ public class EmpleadoController {
 
     private final EmpleadoRepository empleadoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     private final com.oculus.asistencia.rrhh.repository.EmpleadoSedeHabilitadaRepository sedeHabilitadaRepository;
     private final com.oculus.asistencia.reportes.service.ImportacionMasivaService importacionMasivaService;
     private final com.oculus.asistencia.organizacion.service.EmpresaService empresaService;
@@ -88,6 +89,10 @@ public class EmpleadoController {
                             emp.setSedeId(sh.getSede() != null ? sh.getSede().getId() : null);
                         });
             }
+            // Mapear el rol del sistema si tiene usuario
+            if (emp.getUsuario() != null) {
+                emp.setRolSistema(emp.getUsuario().getRol().name());
+            }
         }
         return ResponseEntity.ok(empleados);
     }
@@ -108,6 +113,33 @@ public class EmpleadoController {
                 return ResponseEntity.badRequest().body("El documento ya se encuentra activo en el sistema. Debe desactivarlo primero.");
             }
         }
+        
+        // Crear Usuario Automáticamente
+        String username = empleado.getNumeroDocumento();
+        if (usuarioRepository.findByUsername(username).isPresent()) {
+            return ResponseEntity.badRequest().body("Ya existe un usuario de sistema con ese documento.");
+        }
+        
+        com.oculus.asistencia.identidad.model.Usuario nuevoUsuario = new com.oculus.asistencia.identidad.model.Usuario();
+        nuevoUsuario.setEmpresa(empresaService.getEmpresaDefault());
+        nuevoUsuario.setUsername(username);
+        nuevoUsuario.setPasswordHash(passwordEncoder.encode(username)); // Clave inicial: DNI
+        
+        String rolReq = empleado.getRolSistema();
+        if (rolReq == null || rolReq.isEmpty()) {
+            rolReq = "EMPLEADO";
+        }
+        try {
+            nuevoUsuario.setRol(com.oculus.asistencia.identidad.model.Usuario.Rol.valueOf(rolReq));
+        } catch (IllegalArgumentException e) {
+            nuevoUsuario.setRol(com.oculus.asistencia.identidad.model.Usuario.Rol.EMPLEADO);
+        }
+        nuevoUsuario.setActivo(true);
+        nuevoUsuario.setTourCompletado(false);
+        
+        usuarioRepository.save(nuevoUsuario);
+        empleado.setUsuario(nuevoUsuario);
+
         resolverAsociaciones(empleado);
         Empleado saved = empleadoRepository.save(empleado);
         gestionarSede(saved, empleado.getSedeId());
@@ -127,6 +159,20 @@ public class EmpleadoController {
             }
         }
         empleado.setId(id);
+        
+        // Actualizar rol del usuario si existe
+        Empleado empActual = empleadoRepository.findById(id).orElseThrow();
+        if (empActual.getUsuario() != null && empleado.getRolSistema() != null) {
+            com.oculus.asistencia.identidad.model.Usuario usu = empActual.getUsuario();
+            try {
+                usu.setRol(com.oculus.asistencia.identidad.model.Usuario.Rol.valueOf(empleado.getRolSistema()));
+                usuarioRepository.save(usu);
+            } catch (IllegalArgumentException e) {
+                // Ignore invalid roles
+            }
+            empleado.setUsuario(usu);
+        }
+        
         resolverAsociaciones(empleado);
         Empleado updated = empleadoRepository.save(empleado);
         gestionarSede(updated, empleado.getSedeId());

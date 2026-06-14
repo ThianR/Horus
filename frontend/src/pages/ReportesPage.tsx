@@ -178,6 +178,25 @@ const ReportesPage = () => {
                         <Cpu size={18} />
                         <span className="text-xs font-bold uppercase tracking-wider">DAT (ZKT)</span>
                     </button>
+                    <div className="h-8 w-px bg-slate-700/50 mx-1"></div>
+                    <button 
+                        onClick={async () => {
+                            setLoading('nomina');
+                            try {
+                                await reporteService.descargarNominaExcel(filtros.inicio, filtros.fin);
+                                toast.success("Nómina generada correctamente");
+                            } catch (error) {
+                                toast.error("Error al generar la nómina");
+                            } finally {
+                                setLoading(null);
+                            }
+                        }}
+                        disabled={loading === 'nomina'}
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl border border-white/10 hover:from-blue-500 hover:to-indigo-500 transition-all group shadow-lg shadow-blue-500/25"
+                    >
+                        {loading === 'nomina' ? <div className="w-4 h-4 border-2 border-white/50 border-t-transparent rounded-full animate-spin"></div> : <FileSpreadsheet size={18} />}
+                        <span className="text-xs font-bold uppercase tracking-wider">Consolidado Nómina</span>
+                    </button>
                 </div>
             </div>
 

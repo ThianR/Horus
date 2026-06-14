@@ -21,6 +21,7 @@ const EmpleadoForm: React.FC<EmpleadoFormProps> = ({ empleado, supervisores = []
         numeroDocumento: '',
         email: '',
         estado: 'ACTIVO',
+        rolSistema: 'EMPLEADO',
         ...empleado
     });
 
@@ -212,6 +213,24 @@ const EmpleadoForm: React.FC<EmpleadoFormProps> = ({ empleado, supervisores = []
                                         </option>
                                     ))
                                 }
+                            </select>
+                        </div>
+
+                        {/* Rol del Sistema */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-400 flex items-center gap-2">
+                                <Shield size={16} /> Rol de Acceso (Sistema)
+                            </label>
+                            <select
+                                name="rolSistema"
+                                value={formData.rolSistema || 'EMPLEADO'}
+                                onChange={handleChange}
+                                className="w-full bg-slate-900/80 border border-slate-700/50 text-white p-3 rounded-xl outline-none focus:border-blue-500 transition-all appearance-none"
+                            >
+                                <option value="EMPLEADO">Empleado (Autoservicio)</option>
+                                <option value="SUPERVISOR">Supervisor</option>
+                                <option value="RRHH">Recursos Humanos</option>
+                                <option value="ADMIN">Administrador</option>
                             </select>
                         </div>
                     </div>

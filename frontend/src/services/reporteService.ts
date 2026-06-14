@@ -73,5 +73,26 @@ export const reporteService = {
             params: { fecha }
         });
         return response.data;
+    },
+
+    descargarNominaExcel: async (inicio: string, fin: string) => {
+        const response = await api.get('/nomina/exportar-excel', {
+            params: { inicio, fin },
+            responseType: 'blob'
+        });
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `nomina_${inicio}_al_${fin}.xlsx`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    },
+
+    getResumenNomina: async (inicio: string, fin: string) => {
+        const response = await api.get('/nomina/resumen', {
+            params: { inicio, fin }
+        });
+        return response.data;
     }
 };

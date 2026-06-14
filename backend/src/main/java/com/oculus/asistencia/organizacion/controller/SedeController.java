@@ -4,14 +4,16 @@ import com.oculus.asistencia.organizacion.model.Dispositivo;
 import com.oculus.asistencia.organizacion.model.Sede;
 import com.oculus.asistencia.organizacion.repository.DispositivoRepository;
 import com.oculus.asistencia.organizacion.repository.SedeRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/sedes")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class SedeController {
 
     private final SedeRepository sedeRepository;

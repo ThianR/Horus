@@ -13,6 +13,8 @@ public interface EmpleadoRepository extends JpaRepository<Empleado, Long> {
     
     Optional<Empleado> findByNumeroDocumentoAndEstado(String numeroDocumento, Empleado.EstadoEmpleado estado);
 
+    Optional<Empleado> findByUsuarioUsername(String username);
+
     java.util.List<Empleado> findAllByEmpresaId(Long empresaId);
     long countByEmpresaId(Long empresaId);
 }

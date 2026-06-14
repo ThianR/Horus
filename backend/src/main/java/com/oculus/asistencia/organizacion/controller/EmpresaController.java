@@ -5,6 +5,7 @@ import com.oculus.asistencia.organizacion.repository.EmpresaRepository;
 import com.oculus.asistencia.organizacion.service.EmpresaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/empresas")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class EmpresaController {
 
     private final EmpresaRepository empresaRepository;

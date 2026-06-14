@@ -12,12 +12,16 @@ import WelcomePage from './pages/WelcomePage';
 import ReportesPage from './pages/ReportesPage';
 import ConfiguracionPage from './pages/ConfiguracionPage';
 import AsistenciasPage from './pages/AsistenciasPage';
+import MiPortalPage from './pages/MiPortalPage';
+import MisSolicitudesPage from './pages/MisSolicitudesPage';
+import ActivacionPage from './pages/ActivacionPage';
 
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { dispositivoAuthService } from './services/dispositivoService';
 import { Globe, Shield } from 'lucide-react';
 
 import { ConfirmProvider } from './contexts/ConfirmContext';
+import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
     const [isValidating, setIsValidating] = useState(true);
@@ -50,42 +54,45 @@ function App() {
     }
 
     return (
-        <BrowserRouter>
-            <ConfirmProvider>
-            <Toaster position="top-right" theme="dark" richColors expand closeButton />
-            <Routes>
-                {/* Ruta raíz condicional */}
-                <Route path="/" element={
-                    isDeviceAuthorized ? <WelcomePage /> : <Navigate to="/login" replace />
-                } />
-                
-                <Route path="/login" element={<LoginPage />} />
-                <Route
-                    path="/admin/*"
-                    element={
-                        <ProtectedRoute>
-                            <AdminLayout>
-                                <Routes>
-                                    <Route path="dashboard" element={<DashboardPage />} />
-                                    <Route path="empleados" element={<EmpleadosPage />} />
-                                    <Route path="horarios" element={<HorariosPage />} />
-                                    <Route path="reportes" element={<ReportesPage />} />
-                                    <Route path="asistencias" element={<AsistenciasPage />} />
-                                    <Route path="organizacion" element={<OrganizacionPage />} />
-                                    <Route path="configuracion" element={<ConfiguracionPage />} />
-                                    <Route path="*" element={<Navigate to="dashboard" replace />} />
-                                </Routes>
-                            </AdminLayout>
-                        </ProtectedRoute>
-                    }
-                />
-                <Route path="/kiosco" element={
-                    isDeviceAuthorized ? <KioscoPage /> : <Navigate to="/login" replace />
-                } />
-                <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-            </ConfirmProvider>
-        </BrowserRouter>
+        <AuthProvider>
+            <BrowserRouter>
+                <ConfirmProvider>
+                    <Toaster position="top-right" theme="dark" richColors expand closeButton />
+                    <Routes>
+                        {/* Ruta raíz condicional */}
+                        <Route path="/" element={
+                            isDeviceAuthorized ? <WelcomePage /> : <Navigate to="/login" replace />
+                        } />
+                        
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/activacion" element={<ActivacionPage />} />
+                        <Route
+                            path="/admin/*"
+                            element={
+                                <ProtectedRoute>
+                                    <AdminLayout>
+                                        <Routes>
+                                            <Route path="dashboard" element={<DashboardPage />} />
+                                            <Route path="empleados" element={<ProtectedRoute allowedRoles={['ADMIN', 'RRHH']}><EmpleadosPage /></ProtectedRoute>} />
+                                            <Route path="horarios" element={<ProtectedRoute allowedRoles={['ADMIN', 'RRHH']}><HorariosPage /></ProtectedRoute>} />
+                                            <Route path="reportes" element={<ProtectedRoute allowedRoles={['ADMIN', 'RRHH']}><ReportesPage /></ProtectedRoute>} />
+                                            <Route path="asistencias" element={<AsistenciasPage />} />
+                                            <Route path="organizacion" element={<ProtectedRoute allowedRoles={['ADMIN']}><OrganizacionPage /></ProtectedRoute>} />
+                                            <Route path="configuracion" element={<ProtectedRoute allowedRoles={['ADMIN']}><ConfiguracionPage /></ProtectedRoute>} />
+                                            <Route path="mi-portal" element={<ProtectedRoute allowedRoles={['EMPLEADO', 'ADMIN', 'RRHH']}><MiPortalPage /></ProtectedRoute>} />
+                                            <Route path="mis-solicitudes" element={<ProtectedRoute allowedRoles={['EMPLEADO', 'ADMIN', 'RRHH']}><MisSolicitudesPage /></ProtectedRoute>} />
+                                            <Route path="*" element={<Navigate to="dashboard" replace />} />
+                                        </Routes>
+                                    </AdminLayout>
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route path="/kiosco" element={<KioscoPage />} />
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                </ConfirmProvider>
+            </BrowserRouter>
+        </AuthProvider>
     );
 }
 

@@ -63,6 +63,9 @@ public class Empleado {
     private String sedeActual;
 
     @Transient
+    private String rolSistema;
+
+    @Transient
     private Long sedeId;
 
     @Transient

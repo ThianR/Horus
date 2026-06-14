@@ -20,6 +20,8 @@ public interface MarcacionEventoRepository extends JpaRepository<MarcacionEvento
     List<MarcacionEvento> findUltimasDiez();
 
     java.util.List<MarcacionEvento> findAllByEmpresaId(Long empresaId);
+    
+    List<MarcacionEvento> findByEmpleadoIdOrderByTimestampEventoDesc(Long empleadoId);
 
     org.springframework.data.domain.Page<MarcacionEvento> findAllByEmpresaIdAndTimestampEventoBetween(Long empresaId, LocalDateTime inicio, LocalDateTime fin, org.springframework.data.domain.Pageable pageable);
 

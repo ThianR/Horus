@@ -26,6 +26,8 @@ public class ImportacionMasivaService {
     private final EmpleadoRepository empleadoRepository;
     private final SedeRepository sedeRepository;
     private final EmpleadoSedeHabilitadaRepository empleadoSedeRepo;
+    private final com.oculus.asistencia.identidad.repository.UsuarioRepository usuarioRepository;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     private final com.oculus.asistencia.organizacion.repository.EmpresaRepository empresaRepository;
 
@@ -111,6 +113,19 @@ public class ImportacionMasivaService {
                         empleado.setEstado(Empleado.EstadoEmpleado.ACTIVO);
                         empleado.setBiometriaRegistrada(false);
                         empleado.setEmpresa(empresa);
+                        
+                        String username = empleado.getNumeroDocumento();
+                        if (usuarioRepository.findByUsername(username).isEmpty()) {
+                            com.oculus.asistencia.identidad.model.Usuario nuevoUsuario = new com.oculus.asistencia.identidad.model.Usuario();
+                            nuevoUsuario.setEmpresa(empresa);
+                            nuevoUsuario.setUsername(username);
+                            nuevoUsuario.setPasswordHash(passwordEncoder.encode(username));
+                            nuevoUsuario.setRol(com.oculus.asistencia.identidad.model.Usuario.Rol.EMPLEADO);
+                            nuevoUsuario.setActivo(true);
+                            nuevoUsuario.setTourCompletado(false);
+                            usuarioRepository.save(nuevoUsuario);
+                            empleado.setUsuario(nuevoUsuario);
+                        }
                     }
 
                     // Validar unicidad global del documento si el estado va/es a ser ACTIVO

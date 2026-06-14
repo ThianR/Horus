@@ -11,11 +11,16 @@ import {
   X,
   Camera,
   FileBarChart,
-  Building2
+  Building2,
+  FileText,
+  User
 } from 'lucide-react';
 import { useState } from 'react';
 
 import eyeLogo from '../../assets/eye.svg';
+import { useAuth } from '../../contexts/AuthContext';
+import { toast } from 'sonner';
+import { dispositivoAuthService } from '../../services/dispositivoService';
 
 interface SidebarProps {
   /** Modo mobile: el sidebar actúa como overlay drawer */
@@ -25,24 +30,40 @@ interface SidebarProps {
 
 const Sidebar = ({ mobileOpen = false, onMobileClose }: SidebarProps) => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const menuItems = [
-    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/admin/dashboard' },
-    { icon: <Users size={20} />, label: 'Empleados', path: '/admin/empleados' },
-    { icon: <Clock size={20} />, label: 'Horarios', path: '/admin/horarios' },
-    { icon: <FileBarChart size={20} />, label: 'Reportes', path: '/admin/reportes' },
-    { icon: <Calendar size={20} />, label: 'Asistencias', path: '/admin/asistencias' },
-    { icon: <Building2 size={20} />, label: 'Organización', path: '/admin/organizacion' },
-    { icon: <Camera size={20} />, label: 'Oculus Point', path: '/kiosco' },
-    { icon: <Settings size={20} />, label: 'Configuración', path: '/admin/configuracion' },
+    { icon: <User size={20} />, label: 'Mi Portal', path: '/admin/mi-portal', roles: ['EMPLEADO', 'ADMIN', 'RRHH'] },
+    { icon: <FileText size={20} />, label: 'Mis Solicitudes', path: '/admin/mis-solicitudes', roles: ['EMPLEADO', 'ADMIN', 'RRHH'] },
+    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/admin/dashboard', roles: ['ADMIN', 'RRHH', 'SUPERVISOR', 'EMPLEADO'] },
+    { icon: <Users size={20} />, label: 'Empleados', path: '/admin/empleados', roles: ['ADMIN', 'RRHH'] },
+    { icon: <Clock size={20} />, label: 'Horarios', path: '/admin/horarios', roles: ['ADMIN', 'RRHH'] },
+    { icon: <FileBarChart size={20} />, label: 'Reportes', path: '/admin/reportes', roles: ['ADMIN', 'RRHH'] },
+    { icon: <Calendar size={20} />, label: 'Asistencias', path: '/admin/asistencias', roles: ['ADMIN', 'RRHH', 'SUPERVISOR'] },
+    { icon: <Building2 size={20} />, label: 'Organización', path: '/admin/organizacion', roles: ['ADMIN'] },
+    { icon: <Camera size={20} />, label: 'Oculus Point', path: '/kiosco', roles: ['ADMIN', 'RRHH', 'SUPERVISOR'] },
+    { icon: <Settings size={20} />, label: 'Configuración', path: '/admin/configuracion', roles: ['ADMIN'] },
   ];
 
+  const filteredItems = menuItems.filter(item => item.roles.includes(user?.rol || ''));
+
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    logout();
     navigate('/login');
   };
 
-  const handleNavClick = () => {
+  const handleNavClick = async (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+    if (path === '/kiosco') {
+      e.preventDefault();
+      const isAuthorized = await dispositivoAuthService.validarDispositivoActual();
+      if (!isAuthorized) {
+        toast.error("Equipo no registrado");
+        return;
+      }
+      navigate('/kiosco');
+      onMobileClose?.();
+      return;
+    }
     /* Al navegar en mobile cerramos el drawer */
     onMobileClose?.();
   };
@@ -83,12 +104,12 @@ const Sidebar = ({ mobileOpen = false, onMobileClose }: SidebarProps) => {
 
         {/* Menú de navegación */}
         <nav className="flex-1 p-4 flex flex-col gap-2 overflow-y-auto">
-          {menuItems.map((item) => (
+          {filteredItems.map((item) => (
             <NavLink
               key={item.path}
               id={item.label === 'Organización' ? 'tour-menu-organizacion' : undefined}
               to={item.path}
-              onClick={handleNavClick}
+              onClick={(e) => handleNavClick(e, item.path)}
               className={({ isActive }) => `
                 flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
                 ${isActive

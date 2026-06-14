@@ -16,6 +16,7 @@ export interface Empleado {
     empresa?: any;
     sedeId?: number;
     sedeActual?: string;
+    rolSistema?: string;
 }
 
 export const empleadoService = {

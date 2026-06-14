@@ -53,3 +53,5 @@ __pycache__/
 # Directorio temporal y de diagnóstico
 temp/*
 !temp/.gitkeep
+
+/data/

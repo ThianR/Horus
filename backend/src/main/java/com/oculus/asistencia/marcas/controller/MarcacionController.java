@@ -41,6 +41,14 @@ public class MarcacionController {
         return procesarRegistro(dto);
     }
 
+    @GetMapping("/mis-marcaciones")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('EMPLEADO') or hasRole('ADMIN') or hasRole('RRHH')")
+    public ResponseEntity<List<MarcacionEvento>> misMarcaciones(org.springframework.security.core.Authentication auth) {
+        Empleado empleado = empleadoRepository.findByUsuarioUsername(auth.getName())
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+        return ResponseEntity.ok(marcacionRepository.findByEmpleadoIdOrderByTimestampEventoDesc(empleado.getId()));
+    }
+
     @PostMapping("/identificar")
     public ResponseEntity<?> identificarYRegistrar(
             @RequestParam("foto") MultipartFile foto,

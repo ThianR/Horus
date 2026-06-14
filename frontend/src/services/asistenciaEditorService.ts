@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from './api';
 
 export interface AsistenciaDiaEditor {
     id: number;
@@ -27,12 +27,12 @@ export interface AsistenciaUpdateData {
 
 export const asistenciaEditorService = {
     getAsistenciasMensuales: async (): Promise<AsistenciaDiaEditor[]> => {
-        const response = await axios.get('/api/asistencias');
+        const response = await api.get('/asistencias');
         return response.data;
     },
 
     actualizarAsistencia: async (id: number, data: AsistenciaUpdateData): Promise<AsistenciaDiaEditor> => {
-        const response = await axios.put(`/api/asistencias/${id}`, data);
+        const response = await api.put(`/asistencias/${id}`, data);
         return response.data;
     }
 };
