@@ -303,7 +303,7 @@ const EmpleadosPage = () => {
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+                    <table className="w-full text-left min-w-[1000px]">
                         <thead>
                             <tr className="border-b border-slate-700/50 text-slate-400 text-sm uppercase tracking-wider">
                                 <th className="px-4 py-3 w-10">
@@ -406,7 +406,7 @@ const EmpleadosPage = () => {
                                             </span>
                                         </td>
                                         <td className="px-4 py-4 text-right">
-                                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="flex items-center justify-end gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                                                 <button
                                                     onClick={() => {
                                                         setSelectedEmpleado(emp);

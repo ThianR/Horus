@@ -95,7 +95,12 @@ public class SyncController {
 
         return ResponseEntity.ok(perfiles.stream()
                 .filter(p -> p.getVersion() > version)
-                .map(p -> new EmbeddingDto(p.getEmpleado().getId(), p.getEmbedding(), p.getVersion()))
+                .map(p -> {
+                    List<byte[]> embeddings = p.getMuestras().stream()
+                            .map(com.oculus.asistencia.biometria.model.MuestraBiometrica::getEmbedding)
+                            .toList();
+                    return new EmbeddingDto(p.getEmpleado().getId(), embeddings, p.getVersion());
+                })
                 .toList());
     }
 
@@ -113,6 +118,6 @@ public class SyncController {
     public record SyncResult(int procesados, int ignorados, int errores) {
     }
 
-    public record EmbeddingDto(Long empleadoId, byte[] embedding, Long version) {
+    public record EmbeddingDto(Long empleadoId, List<byte[]> embeddings, Long version) {
     }
 }

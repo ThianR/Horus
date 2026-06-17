@@ -26,10 +26,11 @@ public class PerfilBiometrico {
 
     private boolean activo = true;
 
-    @Lob
-    private byte[] embedding;
-
     private String formato = "FLOAT32_128";
+
+    @OneToMany(mappedBy = "perfil", cascade = CascadeType.ALL, orphanRemoval = true)
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties("perfil")
+    private java.util.List<MuestraBiometrica> muestras = new java.util.ArrayList<>();
 
     @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;

@@ -50,7 +50,7 @@ public class EmpleadoController {
 
         List<com.oculus.asistencia.biometria.model.PerfilBiometrico> perfiles = perfilBiometricoRepository.findAll();
         java.util.Set<Long> empleadosConBiometria = perfiles.stream()
-                .filter(p -> p.isActivo() && p.getEmbedding() != null)
+                .filter(p -> p.isActivo() && !p.getMuestras().isEmpty())
                 .map(p -> p.getEmpleado().getId())
                 .collect(java.util.stream.Collectors.toSet());
 

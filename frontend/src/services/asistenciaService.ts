@@ -43,9 +43,11 @@ export const asistenciaService = {
         return response.data;
     },
 
-    registrarRostro: async (empleadoId: number, fotoBlob: Blob): Promise<string> => {
+    registrarRostro: async (empleadoId: number, fotosBlobs: Blob[]): Promise<string> => {
         const formData = new FormData();
-        formData.append('foto', fotoBlob, 'registro.jpg');
+        fotosBlobs.forEach((blob, index) => {
+            formData.append('fotos', blob, `registro_${index}.jpg`);
+        });
 
         const response = await api.post(`/biometria/registrar/${empleadoId}`, formData, {
             headers: {

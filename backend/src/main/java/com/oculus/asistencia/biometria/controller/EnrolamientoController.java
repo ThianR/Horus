@@ -52,8 +52,14 @@ public class EnrolamientoController {
                     .orElse(new PerfilBiometrico());
 
             perfil.setEmpleado(empOpt.get());
-            perfil.setEmbedding(convertirABytes(embedding));
             perfil.setEmpresa(empresaService.getEmpresaDefault());
+            
+            perfil.getMuestras().clear();
+            com.oculus.asistencia.biometria.model.MuestraBiometrica muestra = new com.oculus.asistencia.biometria.model.MuestraBiometrica();
+            muestra.setPerfil(perfil);
+            muestra.setEmbedding(convertirABytes(embedding));
+            muestra.setEtiqueta("Frontal (Enrolamiento)");
+            perfil.getMuestras().add(muestra);
 
             perfilRepository.save(perfil);
 
@@ -67,6 +73,7 @@ public class EnrolamientoController {
 
     private byte[] convertirABytes(float[] input) {
         java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocate(input.length * 4);
+        buffer.order(java.nio.ByteOrder.LITTLE_ENDIAN);
         for (float f : input) {
             buffer.putFloat(f);
         }

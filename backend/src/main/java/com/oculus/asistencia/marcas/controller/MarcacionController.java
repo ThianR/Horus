@@ -210,19 +210,22 @@ public class MarcacionController {
     }
 
     private List<com.oculus.asistencia.biometria.service.BiometriaService.PerfilCandidato> obtenerCandidatosPorEmpresa(Long empresaId) {
-        return perfilRepository.findAllByEmpresaId(empresaId).stream()
-                .filter(p -> p.isActivo() && p.getEmbedding() != null)
-                .map(p -> {
-                    float[] emb = bytesToFloats(p.getEmbedding());
-                    if (emb.length > 5) {
-                        log.info("Candidato ID {}: Dim={}, Primeros 5: [{}, {}, {}, {}, {}]",
-                                p.getEmpleado().getId(), emb.length, emb[0], emb[1], emb[2], emb[3], emb[4]);
+        List<com.oculus.asistencia.biometria.service.BiometriaService.PerfilCandidato> lista = new java.util.ArrayList<>();
+        
+        perfilRepository.findAllByEmpresaId(empresaId).stream()
+                .filter(com.oculus.asistencia.biometria.model.PerfilBiometrico::isActivo)
+                .forEach(p -> {
+                    for (com.oculus.asistencia.biometria.model.MuestraBiometrica muestra : p.getMuestras()) {
+                        if (muestra.getEmbedding() != null) {
+                            float[] emb = bytesToFloats(muestra.getEmbedding());
+                            lista.add(new com.oculus.asistencia.biometria.service.BiometriaService.PerfilCandidato(
+                                    p.getEmpleado().getId(),
+                                    emb));
+                        }
                     }
-                    return new com.oculus.asistencia.biometria.service.BiometriaService.PerfilCandidato(
-                            p.getEmpleado().getId(),
-                            emb);
-                })
-                .toList();
+                });
+                
+        return lista;
     }
 
     private float[] bytesToFloats(byte[] bytes) {

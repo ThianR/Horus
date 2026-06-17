@@ -33,16 +33,18 @@ public class PaqueteEmbeddingsService {
         // En un MVP, tomamos todos los perfiles activos
         List<PerfilBiometrico> perfiles = perfilRepository.findAll();
 
-        // Calcular tamaño: (Long ID + Int Len + FloatArray) * N
-        // Asumiendo 128 floats (512 bytes) + 8 + 4 = 524 bytes por perfil
-        int size = perfiles.size() * 524;
+        // Contar el total real de muestras para alojar el buffer
+        int totalMuestras = perfiles.stream().mapToInt(p -> p.getMuestras().size()).sum();
+        int size = totalMuestras * 524;
         ByteBuffer buffer = ByteBuffer.allocate(size);
 
         for (PerfilBiometrico p : perfiles) {
-            buffer.putLong(p.getEmpleado().getId());
-            byte[] emb = p.getEmbedding();
-            buffer.putInt(emb.length);
-            buffer.put(emb);
+            for (com.oculus.asistencia.biometria.model.MuestraBiometrica m : p.getMuestras()) {
+                buffer.putLong(p.getEmpleado().getId());
+                byte[] emb = m.getEmbedding();
+                buffer.putInt(emb.length);
+                buffer.put(emb);
+            }
         }
 
         // Registrar el paquete en la DB

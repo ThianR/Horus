@@ -16,10 +16,11 @@ public class DeepFaceBiometriaService implements BiometriaService {
 
     private final BiometriaClient biometriaClient;
 
-    // Umbral estricto para ArcFace usando distancia Euclidiana.
-    // En ArcFace, la distancia euclidiana < 1.0 suele ser misma persona.
-    // 0.6 es un umbral muy conservador y seguro para alta precisión.
-    private static final double ARC_FACE_L2_THRESHOLD = 0.68;
+    @org.springframework.beans.factory.annotation.Value("${oculus.biometria.umbral:0.68}")
+    private double umbralDistancia;
+
+    @org.springframework.beans.factory.annotation.Value("${oculus.biometria.modelo:ArcFace}")
+    private String modeloBiometrico;
 
     @Override
     public ResultadoValidacion validarCalidadImagen(byte[] imagenBytes) {
@@ -72,36 +73,45 @@ public class DeepFaceBiometriaService implements BiometriaService {
     public double compararEmbeddings(float[] embedding1, float[] embedding2) {
         try {
             if (embedding1.length != embedding2.length) {
-                log.error("Dimensión de embeddings no coincide");
-                return 0.0; // Distintos
+                log.error("Dimensión de embeddings no coincide: {} vs {}", embedding1.length, embedding2.length);
+                return 0.0;
             }
 
-            // 2. Calcular Distancia Euclidiana (L2 Norm)
-            double sumSquaredDiff = 0.0;
+            // Similitud coseno: más robusta para vectores normalizados L2
+            // Para vectores L2-normalizados: cosine_sim = dot(a, b)
+            double dotProduct = 0.0;
+            double normA = 0.0;
+            double normB = 0.0;
             for (int i = 0; i < embedding1.length; i++) {
-                double diff = embedding1[i] - embedding2[i];
-                sumSquaredDiff += diff * diff;
+                dotProduct += embedding1[i] * embedding2[i];
+                normA += embedding1[i] * (double) embedding1[i];
+                normB += embedding2[i] * (double) embedding2[i];
             }
-            double distance = Math.sqrt(sumSquaredDiff);
+            normA = Math.sqrt(normA);
+            normB = Math.sqrt(normB);
 
-            double similitudCalculada = 1.0 - (distance / (ARC_FACE_L2_THRESHOLD * 2.0));
-            similitudCalculada = Math.max(0.0, Math.min(1.0, similitudCalculada));
+            // Evitar división por cero
+            if (normA == 0.0 || normB == 0.0) {
+                return 0.0;
+            }
 
-            if (distance <= ARC_FACE_L2_THRESHOLD) {
-                // Forzar similitud alta si pasa la distancia de ArcFace
-                similitudCalculada = Math.max(0.86, similitudCalculada);
-                log.info("DeepFace: MATCH POSITIVO -> Distancia: {}, Similitud Adaptada: {}", distance,
-                        similitudCalculada);
+            double similitud = dotProduct / (normA * normB);
+
+            // Convertir umbral euclidiano a coseno: cos_sim = 1 - (dist^2 / 2)
+            double umbralCoseno = 1.0 - (umbralDistancia * umbralDistancia / 2.0);
+
+            if (similitud >= umbralCoseno) {
+                log.info("DeepFace: MATCH POSITIVO -> Modelo: {}, Similitud Coseno: {} (umbral: {})",
+                        modeloBiometrico, String.format("%.4f", similitud), String.format("%.4f", umbralCoseno));
             } else {
-                similitudCalculada = Math.min(0.84, similitudCalculada);
-                log.info("DeepFace: MATCH NEGATIVO -> Distancia: {}, Similitud Adaptada: {}", distance,
-                        similitudCalculada);
+                log.info("DeepFace: MATCH NEGATIVO -> Modelo: {}, Similitud Coseno: {} (umbral: {})",
+                        modeloBiometrico, String.format("%.4f", similitud), String.format("%.4f", umbralCoseno));
             }
 
-            return similitudCalculada;
+            return similitud;
 
         } catch (Exception e) {
-            log.error("Excepción al comparar embeddings ArcFace", e);
+            log.error("Excepción al comparar embeddings", e);
             return 0.0;
         }
     }
@@ -113,7 +123,7 @@ public class DeepFaceBiometriaService implements BiometriaService {
 
     @Override
     public Long identificarEmpleado(float[] objetivo, List<BiometriaService.PerfilCandidato> candidatos) {
-        log.info("Buscando identidad en {} candidatos mediante ArcFace...", candidatos.size());
+        log.info("Buscando identidad en {} candidatos mediante {}...", candidatos.size(), modeloBiometrico);
 
         Long mejorId = null;
         double maxSim = -1.0;
@@ -126,14 +136,15 @@ public class DeepFaceBiometriaService implements BiometriaService {
             }
         }
 
-        double UMBRAL_STRICT = 0.85;
+        // Usar el mismo umbral coseno derivado del parámetro de distancia
+        double umbralCoseno = 1.0 - (umbralDistancia * umbralDistancia / 2.0);
 
-        if (mejorId != null && maxSim > UMBRAL_STRICT) {
-            log.info("Empleado identificado por DeepFace: ID={} con similitud {}", mejorId, maxSim);
+        if (mejorId != null && maxSim >= umbralCoseno) {
+            log.info("Empleado identificado: ID={} con similitud coseno {}", mejorId, maxSim);
             return mejorId;
         }
 
-        log.warn("No se encontró coincidencia suficiente en DeepFace. Mejor similitud: {}", maxSim);
+        log.warn("No se encontró coincidencia suficiente. Mejor similitud coseno: {} (umbral: {})", maxSim, umbralCoseno);
         return null;
     }
 }

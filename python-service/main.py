@@ -1,7 +1,6 @@
 import os
 import sys
 
-# Forzar el uso de Keras legado para compatibilidad con librerías como MTCNN en TF 2.16+
 os.environ['TF_USE_LEGACY_KERAS'] = '1'
 
 import tensorflow as tf
@@ -31,10 +30,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Definir el modelo a usar
-MODEL_NAME = "ArcFace"
+# Definir el modelo a usar dinámicamente
+MODEL_NAME = os.getenv("OCULUS_MODEL_NAME", "SFace")
 # SSD es un buen equilibrio entre velocidad y precisión (mucho más rápido que RetinaFace)
-DETECTOR_BACKEND = "ssd" 
+DETECTOR_BACKEND = "ssd"
 
 class VerifyRequest(BaseModel):
     img1_path: str
@@ -61,7 +60,6 @@ def file_to_cv2(file_bytes: bytes):
     
     if img is not None:
         # Optimización: Reducir resolución si es muy grande.
-        # En IA de rostros, más de 640px suele ser redundante y lento.
         height, width = img.shape[:2]
         if width > 640:
             ratio = 640 / width
@@ -69,6 +67,15 @@ def file_to_cv2(file_bytes: bytes):
             img = cv2.resize(img, new_dim, interpolation=cv2.INTER_AREA)
             print(f"[*] Imagen re-escalada de {width}x{height} a {new_dim[0]}x{new_dim[1]}")
             
+        # Normalización de Iluminación (CLAHE)
+        # Esto soluciona problemas cuando se enrola en una luz y se marca en otra
+        lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+        l_channel, a, b = cv2.split(lab)
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        cl = clahe.apply(l_channel)
+        merged = cv2.merge((cl, a, b))
+        img = cv2.cvtColor(merged, cv2.COLOR_LAB2BGR)
+
     return img
 
 @app.get("/health")

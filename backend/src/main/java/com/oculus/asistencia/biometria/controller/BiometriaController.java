@@ -36,33 +36,49 @@ public class BiometriaController {
     @PostMapping("/registrar/{empleadoId}")
     public ResponseEntity<?> registrarRostro(
             @PathVariable Long empleadoId,
-            @RequestParam("foto") MultipartFile foto) {
+            @RequestParam("fotos") MultipartFile[] fotos) {
 
         try {
             log.info("Registrando rostro para empleado ID: {}", empleadoId);
+            if (fotos == null || fotos.length < 3) {
+                return ResponseEntity.badRequest().body("Se requieren al menos 3 fotos para el registro.");
+            }
+
             Optional<Empleado> empleadoOpt = empleadoRepository.findById(empleadoId);
             if (empleadoOpt.isEmpty()) {
                 return ResponseEntity.badRequest().body("Empleado no encontrado");
             }
 
-            byte[] bytes = foto.getBytes();
-            float[] embedding = biometriaService.extraerEmbedding(bytes);
-
-            // Convertir float[] a byte[] para guardar en DB
-            byte[] embeddingBytes = floatsToBytes(embedding);
-
             PerfilBiometrico perfil = perfilRepository.findByEmpleadoId(empleadoId)
                     .orElse(new PerfilBiometrico());
 
             perfil.setEmpleado(empleadoOpt.get());
-            perfil.setEmbedding(embeddingBytes);
             perfil.setEmpresa(empresaService.getEmpresaDefault());
             perfil.setActivo(true);
             perfil.setVersion(perfil.getVersion() + 1);
+            
+            // Limpiar muestras anteriores si estamos re-registrando
+            perfil.getMuestras().clear();
+
+            String[] etiquetas = {"Frontal", "Lado Izquierdo", "Lado Derecho", "Extra 1", "Extra 2", "Extra 3", "Extra 4"};
+
+            for (int i = 0; i < fotos.length; i++) {
+                MultipartFile foto = fotos[i];
+                byte[] bytes = foto.getBytes();
+                float[] embedding = biometriaService.extraerEmbedding(bytes);
+                byte[] embeddingBytes = floatsToBytes(embedding);
+
+                com.oculus.asistencia.biometria.model.MuestraBiometrica muestra = new com.oculus.asistencia.biometria.model.MuestraBiometrica();
+                muestra.setPerfil(perfil);
+                muestra.setEmbedding(embeddingBytes);
+                muestra.setEtiqueta(i < etiquetas.length ? etiquetas[i] : "Muestra " + (i + 1));
+                
+                perfil.getMuestras().add(muestra);
+            }
 
             perfilRepository.save(perfil);
 
-            return ResponseEntity.ok("Rostro registrado exitosamente");
+            return ResponseEntity.ok("Rostro registrado exitosamente con " + fotos.length + " muestras.");
 
         } catch (Exception e) {
             log.error("Error al registrar rostro", e);
