@@ -1,6 +1,6 @@
 CREATE TABLE muestra_biometrica (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    perfil_biometrico_id BIGINT NOT NULL,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    perfil_biometrico_id INTEGER NOT NULL,
     embedding BLOB NOT NULL,
     etiqueta VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

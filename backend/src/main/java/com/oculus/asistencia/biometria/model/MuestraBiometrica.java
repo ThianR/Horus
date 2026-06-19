@@ -18,7 +18,6 @@ public class MuestraBiometrica {
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "muestras" })
     private PerfilBiometrico perfil;
 
-    @Lob
     @Column(nullable = false)
     private byte[] embedding;
 

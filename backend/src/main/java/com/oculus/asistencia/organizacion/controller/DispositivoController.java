@@ -18,6 +18,7 @@ public class DispositivoController {
     private final DispositivoRepository dispositivoRepository;
 
     @GetMapping("/validar/{uuid}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<?> validarDispositivo(@PathVariable String uuid) {
         return dispositivoRepository.findByUuidHardware(uuid)
                 .map(disp -> {

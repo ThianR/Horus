@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.2.1",
+    "@tensorflow-models/blazeface": "^0.1.0",
+    "@tensorflow/tfjs": "^4.22.0",
     "axios": "^1.6.2",
     "driver.js": "^1.4.0",
     "lucide-react": "^0.294.0",

@@ -4,6 +4,7 @@ import { Sede, Dispositivo, sedeService, dispositivoService } from '../services/
 import { TurnoPlantilla, turnoService } from '../services/turnoService';
 import DiasSemanaBadge from '../components/DiasSemanaBadge';
 import { useConfirm } from '../contexts/ConfirmContext';
+import { toast } from 'sonner';
 
 const SedesDispositivosPage = () => {
     const { confirm } = useConfirm();

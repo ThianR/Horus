@@ -34,14 +34,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/licencia/**").permitAll()
                         .requestMatchers("/api/marcaciones/identificar").permitAll()
                         .requestMatchers("/api/biometria/**").permitAll()
+                        .requestMatchers("/api/dispositivos/validar/**").permitAll()
+                        .requestMatchers("/api/logs/**").permitAll()
                         .requestMatchers("/api/v1/integraciones/**").permitAll() // La seguridad la maneja el ApiKeyAuthenticationFilter
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll() // Swagger
-                        .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .headers(headers -> headers.frameOptions(opts -> opts.disable())); // Para H2 Console
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         http.addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
