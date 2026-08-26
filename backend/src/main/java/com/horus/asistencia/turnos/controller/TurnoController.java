@@ -1,0 +1,70 @@
+package com.horus.asistencia.turnos.controller;
+
+import com.horus.asistencia.turnos.model.TurnoPlantilla;
+import com.horus.asistencia.turnos.repository.TurnoPlantillaRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/turnos")
+@RequiredArgsConstructor
+public class TurnoController {
+
+    private final TurnoPlantillaRepository turnoRepository;
+    private final com.horus.asistencia.organizacion.service.EmpresaService empresaService;
+
+    @GetMapping
+    public ResponseEntity<List<TurnoPlantilla>> listarTodos() {
+        return ResponseEntity.ok(turnoRepository.findAllByEmpresaIdOrGlobal(empresaService.getEmpresaDefault().getId()));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<TurnoPlantilla> obtenerPorId(@PathVariable Long id) {
+        return turnoRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public ResponseEntity<TurnoPlantilla> crear(@RequestBody TurnoPlantilla turno) {
+        turno.setEmpresa(empresaService.getEmpresaDefault());
+        vincularSegmentos(turno);
+        TurnoPlantilla saved = turnoRepository.save(turno);
+        return ResponseEntity.ok(saved);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<TurnoPlantilla> actualizar(@PathVariable Long id, @RequestBody TurnoPlantilla turno) {
+        if (!turnoRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        turno.setId(id);
+        vincularSegmentos(turno);
+        TurnoPlantilla updated = turnoRepository.save(turno);
+        return ResponseEntity.ok(updated);
+    }
+
+    private void vincularSegmentos(TurnoPlantilla turno) {
+        if (turno.getSegmentos() != null) {
+            turno.getSegmentos().forEach(s -> s.setTurnoPlantilla(turno));
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> eliminar(@PathVariable Long id) {
+        if (!turnoRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            turnoRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("mensaje", "No se puede eliminar la plantilla de turno porque está asignada a empleados o definida por defecto en alguna sede."));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(java.util.Map.of("mensaje", "Error inesperado al eliminar el turno."));
+        }
+    }
+}

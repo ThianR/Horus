@@ -53,7 +53,7 @@ export default function ActivacionPage() {
                     <div className="w-20 h-20 bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-rose-500/20">
                         <Lock size={40} />
                     </div>
-                    <h1 className="text-4xl font-black text-white mb-3 tracking-tight">Oculus <span className="text-rose-500">Bloqueado</span></h1>
+                    <h1 className="text-4xl font-black text-white mb-3 tracking-tight">Horus <span className="text-rose-500">Bloqueado</span></h1>
                     <p className="text-slate-400 text-lg">{mensaje || 'La licencia actual ha expirado o no es válida para este servidor.'}</p>
                 </div>
 
@@ -86,7 +86,7 @@ export default function ActivacionPage() {
                                 onChange={(e) => setToken(e.target.value)}
                                 rows={4}
                                 required
-                                placeholder="Pega aquí el contenido de oculus.lic o el token enviado por tu proveedor..."
+                                placeholder="Pega aquí el contenido de horus.lic o el token enviado por tu proveedor..."
                                 className="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-white font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-none transition-all placeholder:text-slate-600"
                             />
                         </div>

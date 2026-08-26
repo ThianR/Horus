@@ -1,5 +1,5 @@
 /**
- * Oculus Device Fingerprinting Utility
+ * Horus Device Fingerprinting Utility
  * Genera un identificador único basado en características de hardware y software del navegador.
  */
 
@@ -27,9 +27,9 @@ export const generateDeviceFingerprint = async (): Promise<string> => {
             ctx.fillStyle = "#f60";
             ctx.fillRect(125, 1, 62, 20);
             ctx.fillStyle = "#069";
-            ctx.fillText("Oculus-ID-Check", 2, 15);
+            ctx.fillText("Horus-ID-Check", 2, 15);
             ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
-            ctx.fillText("Oculus-ID-Check", 4, 17);
+            ctx.fillText("Horus-ID-Check", 4, 17);
             components.push(canvas.toDataURL());
         }
     } catch (e) {}
@@ -78,7 +78,7 @@ async function hashString(str: string): Promise<string> {
         hash = hash & hash; // Convertir a entero de 32 bits
     }
     
-    // Convertir a hexadecimal positivo y formatear como ID de Oculus
+    // Convertir a hexadecimal positivo y formatear como ID de Horus
     const hashHex = Math.abs(hash).toString(16).padStart(8, '0').toUpperCase();
     return `OC-HW-IP-${hashHex}`;
 }
@@ -87,10 +87,10 @@ async function hashString(str: string): Promise<string> {
  * Obtiene el ID del dispositivo persistente (del localStorage o lo genera de nuevo)
  */
 export const getPersistentDeviceId = async (): Promise<string> => {
-    let devId = localStorage.getItem('oculus_device_id');
+    let devId = localStorage.getItem('horus_device_id');
     if (!devId) {
         devId = await generateDeviceFingerprint();
-        localStorage.setItem('oculus_device_id', devId);
+        localStorage.setItem('horus_device_id', devId);
     }
     return devId;
 };

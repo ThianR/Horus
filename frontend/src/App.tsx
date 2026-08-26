@@ -46,7 +46,7 @@ function App() {
                     </div>
                 </div>
                 <div className="flex flex-col items-center gap-2">
-                    <h2 className="text-xl font-black text-white tracking-widest uppercase">Oculus Secure Boot</h2>
+                    <h2 className="text-xl font-black text-white tracking-widest uppercase">Horus Secure Boot</h2>
                     <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.3em] animate-pulse">Verificando Identidad del Hardware...</p>
                 </div>
             </div>

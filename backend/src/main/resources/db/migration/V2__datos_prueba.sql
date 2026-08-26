@@ -1,4 +1,4 @@
--- Datos de Prueba para Sistema Oculus (Versión Simplificada)
+-- Datos de Prueba para Sistema Horus (Versión Simplificada)
 
 INSERT OR IGNORE INTO sede (id, nombre, direccion, codigo_externo, version_embeddings) 
 VALUES 
@@ -8,14 +8,14 @@ VALUES
 
 INSERT OR IGNORE INTO empleado (id, codigo_empleado, numero_documento, nombre_completo, email, estado) 
 VALUES
-(1, 'EMP-001', '1234567', 'Juan Pérez González', 'juan.perez@oculus.com', 'ACTIVO'),
-(2, 'EMP-002', '2345678', 'María García Rodríguez', 'maria.garcia@oculus.com', 'ACTIVO'),
-(3, 'EMP-003', '3456789', 'Carlos López Martínez', 'carlos.lopez@oculus.com', 'ACTIVO'),
-(4, 'EMP-004', '4567890', 'Ana Fernández Silva', 'ana.fernandez@oculus.com', 'ACTIVO'),
-(5, 'EMP-005', '5678901', 'Roberto Sánchez Torres', 'roberto.sanchez@oculus.com', 'ACTIVO'),
-(6, 'EMP-006', '6789012', 'Laura Martínez Gómez', 'laura.martinez@oculus.com', 'ACTIVO'),
-(7, 'EMP-007', '7890123', 'Diego Ramírez Castro', 'diego.ramirez@oculus.com', 'INACTIVO'),
-(8, 'EMP-008', '8901234', 'Patricia Díaz Morales', 'patricia.diaz@oculus.com', 'ACTIVO');
+(1, 'EMP-001', '1234567', 'Juan Pérez González', 'juan.perez@horus.com', 'ACTIVO'),
+(2, 'EMP-002', '2345678', 'María García Rodríguez', 'maria.garcia@horus.com', 'ACTIVO'),
+(3, 'EMP-003', '3456789', 'Carlos López Martínez', 'carlos.lopez@horus.com', 'ACTIVO'),
+(4, 'EMP-004', '4567890', 'Ana Fernández Silva', 'ana.fernandez@horus.com', 'ACTIVO'),
+(5, 'EMP-005', '5678901', 'Roberto Sánchez Torres', 'roberto.sanchez@horus.com', 'ACTIVO'),
+(6, 'EMP-006', '6789012', 'Laura Martínez Gómez', 'laura.martinez@horus.com', 'ACTIVO'),
+(7, 'EMP-007', '7890123', 'Diego Ramírez Castro', 'diego.ramirez@horus.com', 'INACTIVO'),
+(8, 'EMP-008', '8901234', 'Patricia Díaz Morales', 'patricia.diaz@horus.com', 'ACTIVO');
 
 INSERT OR IGNORE INTO empleado_sede_habilitada (empleado_id, sede_id, fecha_desde, activo) 
 VALUES

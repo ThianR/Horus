@@ -46,8 +46,9 @@ const MisSolicitudesPage = () => {
             setFechaFin('');
             setMotivo('');
             cargarSolicitudes();
-        } catch (error) {
-            toast.error("Error al enviar la solicitud");
+        } catch (error: any) {
+            const errorMsg = error.response?.data?.mensaje || "Error al enviar la solicitud";
+            toast.error(errorMsg);
         } finally {
             setIsSubmitting(false);
         }

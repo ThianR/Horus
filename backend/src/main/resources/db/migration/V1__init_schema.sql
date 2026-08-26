@@ -257,7 +257,7 @@ INSERT OR IGNORE INTO empresa (id, nombre, identificacion_fiscal, activo)
 VALUES (1, 'Empresa Demo/Default', '00000000-0', TRUE);
 
 INSERT OR IGNORE INTO usuario (id, username, password_hash, rol, activo, empresa_id) 
-VALUES (1, 'admin', '$2a$10$0ht/DM8vJwIH.U0X1R9wd.RkyH0xDj7EcqQ3gHQP7t9YQlauF6qD.', 'ADMIN', TRUE, 1);
+VALUES (1, 'admin', '$2b$12$UUIiTJ2B.D48Og9F8ADqBuVcIYbroot2YPfRG2vVOmDXSmJ6Sliwm', 'ADMIN', TRUE, 1);
 
 INSERT OR IGNORE INTO regla_asistencia (id, nombre, nivel_alcance, tolerancia_entrada, redondeo_entrada, permite_horas_extra) 
 VALUES (1, 'REGLA GLOBAL DEFAULT', 'GLOBAL', 15, 0, TRUE);

@@ -1,6 +1,6 @@
 @echo off
 echo =========================================================
-echo    COMPILANDO BACKEND OCULUS (JDK 21 + Maven 3.8.8)
+echo    COMPILANDO BACKEND HORUS (JDK 21 + Maven 3.8.8)
 echo =========================================================
 
 SET JAVA_HOME=C:\Program Files\Java\jdk-21

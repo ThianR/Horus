@@ -505,7 +505,7 @@ const OrganizacionPage = () => {
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Razón Social Corporativa</label>
                                 <div className="relative">
                                     <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                                    <input id="tour-org-nombre" required type="text" value={empresaForm.nombre} onChange={e => setEmpresaForm({...empresaForm, nombre: e.target.value})} className="form-input pl-12 font-black" placeholder="Ej: Oculus Technologies S.A." />
+                                    <input id="tour-org-nombre" required type="text" value={empresaForm.nombre} onChange={e => setEmpresaForm({...empresaForm, nombre: e.target.value})} className="form-input pl-12 font-black" placeholder="Ej: Horus Technologies S.A." />
                                 </div>
                             </div>
                             <div className="space-y-1.5">

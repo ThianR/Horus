@@ -397,7 +397,7 @@ const ReportesPage = () => {
                         </div>
                         <p className="text-slate-400 leading-relaxed mb-6 font-medium">
                             Sincroniza marcaciones desde terminales físicos externos (ZKTeco, Anviz, Dahua).
-                            El sistema procesa archivos <code className="text-blue-400 bg-blue-500/5 px-2 py-0.5 rounded">.dat</code> e integra las marcas automáticamente al motor de Oculus.
+                            El sistema procesa archivos <code className="text-blue-400 bg-blue-500/5 px-2 py-0.5 rounded">.dat</code> e integra las marcas automáticamente al motor de Horus.
                         </p>
                     </div>
 

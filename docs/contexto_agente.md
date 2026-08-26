@@ -1,14 +1,14 @@
-# Contexto del Proyecto Oculus (Para Agentes de IA)
+# Contexto del Proyecto Horus (Para Agentes de IA)
 
-Este documento proporciona el contexto necesario para que un agente de IA comprenda, mantenga o extienda el sistema **Oculus**.
+Este documento proporciona el contexto necesario para que un agente de IA comprenda, mantenga o extienda el sistema **Horus**.
 
 ## 🎯 Propósito del Proyecto
-Oculus es un sistema de **Control de Asistencias Biométrico** diseñado para operar en entornos con conectividad limitada (offline). Permite el registro de entradas y salidas mediante reconocimiento facial y validación de liveness en kioscos locales, sincronizando los datos con un servidor central cuando hay conexión.
+Horus es un sistema de **Control de Asistencias Biométrico** diseñado para operar en entornos con conectividad limitada (offline). Permite el registro de entradas y salidas mediante reconocimiento facial y validación de liveness en kioscos locales, sincronizando los datos con un servidor central cuando hay conexión.
 
 ## 🛠️ Stack Tecnológico
 - **Backend**: Java 17+, Spring Boot 3.2.1.
-- **Base de Datos**: H2 (modo archivo) gestionado por Flyway.
-- **Arquitectura**: Monolito Modular. Los módulos están delimitados por paquetes en `com.oculus.asistencia`.
+- **Base de Datos**: SQLite (modo archivo) gestionado por Flyway.
+- **Arquitectura**: Monolito Modular. Los módulos están delimitados por paquetes en `com.horus.asistencia`.
 - **Idioma**: Estricto **Español** en nombres de clases, variables, base de datos, endpoints y mensajes.
 
 ## 🧩 Estructura de Módulos

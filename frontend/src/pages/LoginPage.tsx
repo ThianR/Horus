@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogIn, Home } from 'lucide-react';
 import axios from 'axios';
-import OculusLogo from '../components/common/OculusLogo';
+import HorusLogo from '../components/common/HorusLogo';
 import eyeLogo from '../assets/eye.svg';
 import { toast } from 'sonner';
 import { getPersistentDeviceId } from '../utils/deviceFingerprint';
@@ -73,7 +73,7 @@ const LoginPage = () => {
 
             <div className="glass p-8 rounded-3xl w-full max-w-md flex flex-col items-center relative z-10 shadow-2xl">
                 <div className="mb-6">
-                    <OculusLogo width={280} />
+                    <HorusLogo width={280} />
                 </div>
                 <p className="text-gray-400 mb-8 text-center text-sm">Sistema de Control de Asistencia Biométrico</p>
 
@@ -143,7 +143,7 @@ const LoginPage = () => {
                 </div>
 
                 <div className="mt-10 text-[10px] text-gray-500 border-t border-white/5 pt-5 w-full text-center uppercase tracking-[0.2em]">
-                    Oculus Security &middot; Versión 1.0.0 &copy; 2026
+                    Horus Security &middot; Versión 1.0.0 &copy; 2026
                 </div>
             </div>
         </div>

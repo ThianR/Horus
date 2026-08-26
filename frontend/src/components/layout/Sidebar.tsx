@@ -41,7 +41,7 @@ const Sidebar = ({ mobileOpen = false, onMobileClose }: SidebarProps) => {
     { icon: <FileBarChart size={20} />, label: 'Reportes', path: '/admin/reportes', roles: ['ADMIN', 'RRHH'] },
     { icon: <Calendar size={20} />, label: 'Asistencias', path: '/admin/asistencias', roles: ['ADMIN', 'RRHH', 'SUPERVISOR'] },
     { icon: <Building2 size={20} />, label: 'Organización', path: '/admin/organizacion', roles: ['ADMIN'] },
-    { icon: <Camera size={20} />, label: 'Oculus Point', path: '/kiosco', roles: ['ADMIN', 'RRHH', 'SUPERVISOR'] },
+    { icon: <Camera size={20} />, label: 'Horus Point', path: '/kiosco', roles: ['ADMIN', 'RRHH', 'SUPERVISOR'] },
     { icon: <Settings size={20} />, label: 'Configuración', path: '/admin/configuracion', roles: ['ADMIN'] },
   ];
 
@@ -91,7 +91,7 @@ const Sidebar = ({ mobileOpen = false, onMobileClose }: SidebarProps) => {
         <div className="p-6 border-b border-slate-700/50 flex items-center justify-between">
           <h1 className="text-xl font-bold flex items-center gap-3">
             <img src={eyeLogo} alt="Logo" className="w-8 h-8 drop-shadow-[0_0_8px_rgba(33,243,255,0.4)]" />
-            <span className="text-gradient">Oculus Admin</span>
+            <span className="text-gradient">Horus Admin</span>
           </h1>
           {/* Botón cerrar solo visible en mobile */}
           <button

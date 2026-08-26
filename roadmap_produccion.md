@@ -1,9 +1,9 @@
-# Roadmap a Producción: Oculus Asistencia
+# Roadmap a Producción: Horus Asistencia
 
 Este documento detalla las áreas clave que deben abordarse antes de comercializar el sistema a clientes finales, asegurando estabilidad, seguridad y profesionalismo.
 
 ## 1. Cambio de Base de Datos (Crítico)
-Actualmente el sistema utiliza **H2 Database** (basada en archivos locales). H2 es excelente para desarrollo, pero en producción puede corromperse bajo concurrencia y carece de herramientas robustas de backup.
+Actualmente el sistema utiliza **SQLite** (basada en archivos locales). SQLite es excelente para desarrollo, pero en producción puede encontrar limitaciones bajo alta concurrencia y carece de herramientas robustas de backup remoto.
 - [ ] Migrar a **PostgreSQL** o **MySQL**.
 - [ ] Configurar un sistema de backups automáticos diarios de la base de datos.
 - [ ] Separar las credenciales de base de datos usando variables de entorno seguras en el servidor.

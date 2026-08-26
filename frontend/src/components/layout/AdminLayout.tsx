@@ -47,7 +47,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                         <Menu size={22} />
                     </button>
                     <img src={eyeLogo} alt="Logo" className="w-6 h-6 hidden lg:block" />
-                    <span className="text-base font-bold text-gradient lg:hidden">Oculus Admin</span>
+                    <span className="text-base font-bold text-gradient lg:hidden">Horus Admin</span>
                     <TopbarHelpButton />
                 </header>
 

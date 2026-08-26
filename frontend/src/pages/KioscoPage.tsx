@@ -344,7 +344,7 @@ const KioscoPage = () => {
                 className="absolute top-6 left-6 flex items-center gap-2 px-4 py-2 rounded-full glass border border-white/5 hover:bg-white/10 transition-all text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white z-20"
             >
                 <Home size={16} />
-                <span>Oculus Point (Inicio)</span>
+                <span>Horus Point (Inicio)</span>
             </button>
 
             {/* Indicador de Estado Superior (Premium) */}
@@ -360,7 +360,7 @@ const KioscoPage = () => {
                 {/* Lado Izquierdo: Control y Cámara */}
                 <div className="flex-1 flex flex-col items-center w-full">
                     <div className="text-center mb-8 flex flex-col items-center">
-                        <img src={eyeLogo} alt="Oculus Logo" className="w-20 lg:w-24 mb-4 drop-shadow-[0_0_15px_rgba(33,243,255,0.3)]" />
+                        <img src={eyeLogo} alt="Horus Logo" className="w-20 lg:w-24 mb-4 drop-shadow-[0_0_15px_rgba(33,243,255,0.3)]" />
                         <h1 className="text-5xl lg:text-7xl font-bold tracking-tight mb-2">
                             {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </h1>

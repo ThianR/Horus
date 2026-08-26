@@ -1,4 +1,4 @@
-# Sistema de Control de Asistencias Biométrico - Oculus
+# Sistema de Control de Asistencias Biométrico - Horus
 
 Sistema de gestión de asistencia con soporte para marca biométrica, operación offline y sincronización inteligente.
 Desarrollado en Java + Spring Boot 3 con arquitectura modular.
@@ -10,7 +10,7 @@ Desarrollado en Java + Spring Boot 3 con arquitectura modular.
 ## Estructura del Proyecto
 - `backend/`: Código fuente del servidor API REST.
 - `backend/src/main/resources/db/migration`: Scripts SQL de base de datos (Flyway).
-- `data/`: Base de datos local H2 (se crea automáticamente).
+- `data/`: Base de datos local SQLite (se crea automáticamente).
 
 ## Cómo Ejecutar
 
@@ -43,7 +43,7 @@ Desarrollado en Java + Spring Boot 3 con arquitectura modular.
 
 ## Configuración
 La configuración principal está en `backend/src/main/resources/application.properties`.
-Por defecto usa H2 en modo archivo: `./data/oculus_db`.
+Por defecto usa SQLite en modo archivo: `./data/horus_db.db`.
 
 ## Scripts Útiles
 - `ejecutar_backend.bat`: Script para iniciar el servidor en Windows.

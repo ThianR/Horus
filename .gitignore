@@ -1,5 +1,5 @@
 # ==========================================
-# Oculus - Global Git Ignore
+# Horus - Global Git Ignore
 # ==========================================
 
 # IDEs & Editores
@@ -27,10 +27,13 @@ dist-ssr/
 *.log
 *.txt
 
-# Bases de Datos Locales (H2)
-/backend/data/
-*.mv.db
-*.trace.db
+# Bases de Datos Locales (SQLite)
+/data/
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
 
 # Archivos de Entorno (Se excluyen variables sensibles)
 .env

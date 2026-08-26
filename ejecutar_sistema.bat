@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 echo ==========================================================
-echo           INICIANDO SISTEMA OCULUS (FULL STACK)
+echo           INICIANDO SISTEMA HORUS (FULL STACK)
 echo ==========================================================
 
 :: Configurar Variables de Entorno
@@ -28,13 +28,13 @@ powershell -Command "$ports = @(8000, 8001, 5173); foreach ($port in $ports) { $
 :: 2. Iniciar el Frontend en segundo plano
 echo [+] Iniciando FRONTEND (Vite)...
 cd frontend
-start "OCULUS-FRONTEND" cmd /c "npm run dev"
+start "HORUS-FRONTEND" cmd /c "npm run dev"
 cd ..
 
 :: 3. Iniciar el Microservicio de Biometría (Python FastAPI)
 echo [+] Iniciando MICROSERVICIO IA (DeepFace)...
 cd python-service
-start "OCULUS-IA" cmd /c "start.bat"
+start "HORUS-IA" cmd /c "start.bat"
 cd ..
 
 :: 4. Iniciar el Backend (este proceso se queda en primer plano)
@@ -59,6 +59,6 @@ if exist "%MAVEN_HOME%\bin\mvn.cmd" (
 )
 
 :: Cuando se cierra el backend, intentamos cerrar la ventana del front e IA
-taskkill /FI "WINDOWTITLE eq OCULUS-FRONTEND*" /T /F >nul 2>&1
-taskkill /FI "WINDOWTITLE eq OCULUS-IA*" /T /F >nul 2>&1
+taskkill /FI "WINDOWTITLE eq HORUS-FRONTEND*" /T /F >nul 2>&1
+taskkill /FI "WINDOWTITLE eq HORUS-IA*" /T /F >nul 2>&1
 pause

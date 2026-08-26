@@ -5,7 +5,7 @@ const ConfiguracionPage = () => {
         <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div>
                 <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Configuración del Sistema</h1>
-                <p className="text-slate-400">Gestiona las plantillas de datos y la identidad de tu organización en Oculus.</p>
+                <p className="text-slate-400">Gestiona las plantillas de datos y la identidad de tu organización en Horus.</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -108,7 +108,7 @@ const ConfiguracionPage = () => {
                             <ul className="space-y-3 text-sm text-slate-300">
                                 <li className="flex gap-3 items-start">
                                     <span className="font-mono text-xs bg-slate-800 px-2 py-1 rounded text-blue-300 w-32 shrink-0">Columna 1</span>
-                                    <div><strong>ID Usuario</strong>: Coincide con el CodigoEmpleado en Oculus.</div>
+                                    <div><strong>ID Usuario</strong>: Coincide con el CodigoEmpleado en Horus.</div>
                                 </li>
                                 <li className="flex gap-3 items-start">
                                     <span className="font-mono text-xs bg-slate-800 px-2 py-1 rounded text-blue-300 w-32 shrink-0">Columna 2</span>

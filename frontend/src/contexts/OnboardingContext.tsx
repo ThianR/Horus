@@ -30,7 +30,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             steps: [
                 {
                     popover: {
-                        title: '¡Bienvenido a Oculus!',
+                        title: '¡Bienvenido a Horus!',
                         description: 'Este es tu Dashboard principal. Vamos a guiarte rápidamente para que configures los datos básicos de tu empresa y puedas empezar a usar el sistema.'
                     }
                 },

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Camera, ShieldCheck, LayoutDashboard, Fingerprint } from 'lucide-react';
-import OculusLogo from '../components/common/OculusLogo';
+import HorusLogo from '../components/common/HorusLogo';
 import eyeLogo from '../assets/eye.svg';
 
 const WelcomePage = () => {
@@ -25,7 +25,7 @@ const WelcomePage = () => {
 
             {/* Logo Central con Animación al Hover */}
             <div className="mb-16 z-10 scale-125 md:scale-150 transition-transform hover:scale-[1.6] duration-500">
-                <OculusLogo width={350} />
+                <HorusLogo width={350} />
             </div>
 
             <div className="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 gap-8 z-10 px-4">
@@ -42,7 +42,7 @@ const WelcomePage = () => {
                         <Camera size={48} className="text-blue-400" />
                     </div>
 
-                    <h2 className="text-3xl font-bold mb-3 tracking-tight group-hover:text-blue-300 transition-colors self-center">Oculus Point</h2>
+                    <h2 className="text-3xl font-bold mb-3 tracking-tight group-hover:text-blue-300 transition-colors self-center">Horus Point</h2>
                     <p className="text-gray-400 text-center text-sm leading-relaxed max-w-[250px] self-center">
                         Punto de acceso biométrico para empleados. Registro de entrada y salida vía reconocimiento facial.
                     </p>
@@ -79,7 +79,7 @@ const WelcomePage = () => {
             {/* Footer Minimalista */}
             <div className="mt-20 text-[10px] text-gray-500 uppercase tracking-[0.3em] font-medium z-10 flex items-center gap-3">
                 <span className="w-1 h-1 rounded-full bg-blue-500 animate-pulse"></span>
-                Oculus Visionary Systems Lab &middot; 2026
+                Horus Visionary Systems Lab &middot; 2026
                 <span className="w-1 h-1 rounded-full bg-blue-500 animate-pulse"></span>
             </div>
         </div>

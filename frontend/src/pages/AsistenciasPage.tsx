@@ -57,8 +57,8 @@ export default function AsistenciasPage() {
             };
             
             // Solo mandamos si no están vacíos (o nullificamos si están vacíos)
-            dataToUpdate.horaEntradaReal = formHoraEntrada ? new Date(formHoraEntrada).toISOString() : null;
-            dataToUpdate.horaSalidaReal = formHoraSalida ? new Date(formHoraSalida).toISOString() : null;
+            dataToUpdate.horaEntradaReal = formHoraEntrada ? `${formHoraEntrada}:00` : null;
+            dataToUpdate.horaSalidaReal = formHoraSalida ? `${formHoraSalida}:00` : null;
 
             const toastId = toast.loading('Guardando cambios...');
             await asistenciaEditorService.actualizarAsistencia(editingAsistencia.id, dataToUpdate);
