@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from './api';
 
 export interface DashboardStats {
     totalEmpleados: number;
@@ -34,15 +34,15 @@ export interface AsistenciaHoy {
 
 export const dashboardService = {
     getStats: async (): Promise<DashboardStats> => {
-        const response = await axios.get('/api/dashboard/stats');
+        const response = await api.get('/dashboard/stats');
         return response.data;
     },
     getEventosRecientes: async (): Promise<EventoReciente[]> => {
-        const response = await axios.get('/api/dashboard/eventos-recientes');
+        const response = await api.get('/dashboard/eventos-recientes');
         return response.data;
     },
     getAsistenciasHoy: async (): Promise<AsistenciaHoy[]> => {
-        const response = await axios.get('/api/dashboard/asistencias-hoy');
+        const response = await api.get('/dashboard/asistencias-hoy');
         return response.data;
     }
 };

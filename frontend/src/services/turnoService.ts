@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from './api';
 
 export type TipoTurno = 'FIJO' | 'FLEXIBLE' | 'ABIERTO';
 
@@ -27,22 +27,22 @@ export interface TurnoPlantilla {
 
 export const turnoService = {
     getTodos: async (): Promise<TurnoPlantilla[]> => {
-        const response = await axios.get('/api/turnos');
+        const response = await api.get('/turnos');
         return response.data;
     },
     getPorId: async (id: number): Promise<TurnoPlantilla> => {
-        const response = await axios.get(`/api/turnos/${id}`);
+        const response = await api.get(`/turnos/${id}`);
         return response.data;
     },
     crear: async (turno: TurnoPlantilla): Promise<TurnoPlantilla> => {
-        const response = await axios.post('/api/turnos', turno);
+        const response = await api.post('/turnos', turno);
         return response.data;
     },
     actualizar: async (id: number, turno: TurnoPlantilla): Promise<TurnoPlantilla> => {
-        const response = await axios.put(`/api/turnos/${id}`, turno);
+        const response = await api.put(`/turnos/${id}`, turno);
         return response.data;
     },
     eliminar: async (id: number): Promise<void> => {
-        await axios.delete(`/api/turnos/${id}`);
+        await api.delete(`/turnos/${id}`);
     }
 };

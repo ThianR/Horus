@@ -1,19 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Server, Search, Plus, Trash2, Edit2, Play, Pause, AlertCircle, Settings2, Save, X } from 'lucide-react';
 import { Sede, Dispositivo, sedeService, dispositivoService } from '../services/sedeService';
+import { TurnoPlantilla, turnoService } from '../services/turnoService';
+import DiasSemanaBadge from '../components/DiasSemanaBadge';
+import { useConfirm } from '../contexts/ConfirmContext';
+import { toast } from 'sonner';
 
 const SedesDispositivosPage = () => {
+    const { confirm } = useConfirm();
     const [sedes, setSedes] = useState<Sede[]>([]);
     const [dispositivos, setDispositivos] = useState<Dispositivo[]>([]);
     const [loadingSedes, setLoadingSedes] = useState(true);
     const [loadingDispositivos, setLoadingDispositivos] = useState(false);
+    const [turnos, setTurnos] = useState<TurnoPlantilla[]>([]);
 
     const [selectedSedeId, setSelectedSedeId] = useState<number | null>(null);
     const [showSedeModal, setShowSedeModal] = useState(false);
     const [showDispositivoModal, setShowDispositivoModal] = useState(false);
 
     // Formularios
-    const [sedeFormData, setSedeFormData] = useState<Partial<Sede>>({ nombre: '', direccion: '', codigoExterno: '' });
+    const [sedeFormData, setSedeFormData] = useState<Partial<Sede>>({
+        nombre: '',
+        direccion: '',
+        codigoExterno: '',
+        turnoDefectoId: null,
+        diasTurnoDefecto: 'LUN,MAR,MIE,JUE,VIE'
+    });
     const [dispositivoFormData, setDispositivoFormData] = useState<Partial<Dispositivo>>({
         nombre: '',
         uuidHardware: '',
@@ -24,7 +36,17 @@ const SedesDispositivosPage = () => {
 
     useEffect(() => {
         cargarSedes();
+        cargarTurnos();
     }, []);
+
+    const cargarTurnos = async () => {
+        try {
+            const data = await turnoService.getTodos();
+            setTurnos(data);
+        } catch (error) {
+            console.error('Error cargando turnos', error);
+        }
+    };
 
     useEffect(() => {
         if (selectedSedeId) {
@@ -64,11 +86,19 @@ const SedesDispositivosPage = () => {
     const handleSaveSede = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            let savedSede;
             if (sedeFormData.id) {
-                await sedeService.update(sedeFormData.id, sedeFormData);
+                savedSede = await sedeService.update(sedeFormData.id, sedeFormData);
             } else {
-                await sedeService.create(sedeFormData);
+                savedSede = await sedeService.create(sedeFormData);
             }
+            // Guardar Turno por defecto con sus días
+            await sedeService.asignarTurnoDefecto(
+                savedSede.id,
+                sedeFormData.turnoDefectoId ?? null,
+                sedeFormData.diasTurnoDefecto
+            );
+
             setShowSedeModal(false);
             cargarSedes();
         } catch (error) {
@@ -77,13 +107,14 @@ const SedesDispositivosPage = () => {
     };
 
     const handleDeleteSede = async (id: number) => {
-        if (!confirm('¿Estás seguro de eliminar esta sede y sus dispositivos asociados?')) return;
+        if (!(await confirm({ message: '¿Estás seguro de eliminar esta sede y sus dispositivos asociados?', type: 'danger' }))) return;
         try {
             await sedeService.delete(id);
             if (selectedSedeId === id) setSelectedSedeId(null);
             cargarSedes();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error eliminando sede:', error);
+            toast.error(error.response?.data?.mensaje || "Error al eliminar sede");
         }
     };
 
@@ -104,17 +135,18 @@ const SedesDispositivosPage = () => {
     };
 
     const handleDeleteDispositivo = async (id: number) => {
-        if (!confirm('¿Estás seguro de eliminar este dispositivo biométrico?')) return;
+        if (!(await confirm({ message: '¿Estás seguro de eliminar este dispositivo biométrico?', type: 'danger' }))) return;
         try {
             await dispositivoService.delete(id);
             if (selectedSedeId) cargarDispositivos(selectedSedeId);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error eliminando dispositivo:', error);
+            toast.error(error.response?.data?.mensaje || "Error al eliminar dispositivo");
         }
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto">
+        <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto">
             {/* Cabecera general */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -126,14 +158,14 @@ const SedesDispositivosPage = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
 
-                {/* LISTADO DE SEDES LADO IZQUIERDO */}
-                <div className="lg:col-span-1 glass rounded-3xl p-5 border border-white/5 flex flex-col h-[700px]">
+                {/* LISTADO DE SEDES */}
+                <div className="lg:col-span-1 glass rounded-3xl p-4 sm:p-5 border border-white/5 flex flex-col h-auto lg:h-[700px]">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-lg font-bold text-white">Sedes Activas</h2>
                         <button
-                            onClick={() => { setSedeFormData({ nombre: '', direccion: '', codigoExterno: '' }); setShowSedeModal(true); }}
+                            onClick={() => { setSedeFormData({ nombre: '', direccion: '', codigoExterno: '', turnoDefectoId: null }); setShowSedeModal(true); }}
                             className="p-2 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-xl transition-colors"
                             title="Nueva Sede"
                         >
@@ -152,18 +184,26 @@ const SedesDispositivosPage = () => {
                                     key={sede.id}
                                     onClick={() => setSelectedSedeId(sede.id)}
                                     className={`p-4 rounded-2xl cursor-pointer transition-all border ${selectedSedeId === sede.id
-                                            ? 'bg-blue-500/10 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
-                                            : 'bg-slate-900/40 border-white/5 hover:border-white/10'
+                                        ? 'bg-blue-500/10 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
+                                        : 'bg-slate-900/40 border-white/5 hover:border-white/10'
                                         }`}
                                 >
                                     <h3 className={`font-semibold text-sm ${selectedSedeId === sede.id ? 'text-blue-400' : 'text-slate-200'}`}>
                                         {sede.nombre}
                                     </h3>
                                     <p className="text-[11px] text-slate-500 mt-1 truncate" title={sede.direccion}>{sede.direccion || 'Sin dirección'}</p>
+                                    {sede.turnoDefecto && (
+                                        <div className="mt-2 space-y-1">
+                                            <div className="inline-block px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[10px] rounded-lg border border-blue-500/20">
+                                                Turno Defecto: {sede.turnoDefecto.nombre}
+                                            </div>
+                                            <DiasSemanaBadge diasSeleccionados={sede.diasTurnoDefecto} />
+                                        </div>
+                                    )}
 
                                     <div className="flex justify-end gap-2 mt-3 pt-2 border-t border-white/5">
                                         <button
-                                            onClick={(e) => { e.stopPropagation(); setSedeFormData(sede); setShowSedeModal(true); }}
+                                            onClick={(e) => { e.stopPropagation(); setSedeFormData({ ...sede, turnoDefectoId: sede.turnoDefecto?.id || null }); setShowSedeModal(true); }}
                                             className="text-slate-400 hover:text-blue-400 transition-colors tooltip" title="Editar"
                                         >
                                             <Edit2 size={14} />
@@ -181,8 +221,8 @@ const SedesDispositivosPage = () => {
                     </div>
                 </div>
 
-                {/* AREA DE DISPOSITIVOS LADO DERECHO */}
-                <div className="lg:col-span-3 glass rounded-3xl p-6 border border-white/5 h-[700px] flex flex-col">
+                {/* AREA DE DISPOSITIVOS */}
+                <div className="lg:col-span-3 glass rounded-3xl p-4 sm:p-6 border border-white/5 min-h-[400px] lg:h-[700px] flex flex-col">
                     {!selectedSedeId ? (
                         <div className="flex flex-col items-center justify-center h-full text-slate-500 gap-4">
                             <Server size={48} className="text-slate-700" />
@@ -267,10 +307,10 @@ const SedesDispositivosPage = () => {
                 </div>
             </div>
 
-            {/* MODAL NUEVA/EDITAR SEDE */}
+            {/* MODAL SEDE */}
             {showSedeModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-                    <div className="bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative">
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in">
+                    <div className="bg-slate-900 border border-slate-700/50 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md overflow-hidden relative animate-in slide-in-from-bottom sm:zoom-in duration-300">
                         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 flex justify-between items-center">
                             <h2 className="text-xl font-bold text-white flex items-center gap-2">
                                 <MapPin size={20} />
@@ -280,7 +320,7 @@ const SedesDispositivosPage = () => {
                                 <X size={20} />
                             </button>
                         </div>
-                        <form onSubmit={handleSaveSede} className="p-6 space-y-4">
+                        <form onSubmit={handleSaveSede} className="p-4 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto">
                             <div className="space-y-1">
                                 <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nombre de Sede</label>
                                 <input
@@ -311,6 +351,51 @@ const SedesDispositivosPage = () => {
                                     placeholder="SUC-010"
                                 />
                             </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Turno por Defecto de Sede</label>
+                                <select
+                                    className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-2.5 focus:border-emerald-500 outline-none transition-colors text-sm"
+                                    value={sedeFormData.turnoDefectoId || ''}
+                                    onChange={e => setSedeFormData({ ...sedeFormData, turnoDefectoId: e.target.value ? Number(e.target.value) : null })}
+                                >
+                                    <option value="">Ninguno (Sin Turno Automático)</option>
+                                    {turnos.map(t => (
+                                        <option key={t.id} value={t.id}>{t.nombre}</option>
+                                    ))}
+                                </select>
+                                {sedeFormData.turnoDefectoId && (
+                                    <div className="mt-3 bg-slate-800/50 p-3 rounded-lg border border-white/5">
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-2">Días Laborales (Shift)</label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'].map(dia => {
+                                                const isSelected = sedeFormData.diasTurnoDefecto?.split(',').includes(dia);
+                                                return (
+                                                    <button
+                                                        key={dia}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const currentDias = sedeFormData.diasTurnoDefecto?.split(',').filter(d => d) || [];
+                                                            const nextDias = isSelected
+                                                                ? currentDias.filter(d => d !== dia)
+                                                                : [...currentDias, dia];
+                                                            setSedeFormData({ ...sedeFormData, diasTurnoDefecto: nextDias.join(',') });
+                                                        }}
+                                                        className={`px-2 py-1 rounded text-[10px] font-bold border transition-all ${isSelected
+                                                            ? 'bg-blue-500 text-white border-blue-400'
+                                                            : 'bg-slate-700 text-slate-400 border-slate-600'
+                                                            }`}
+                                                    >
+                                                        {dia}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                                <p className="text-[10px] text-slate-500 leading-tight mt-1">
+                                    Si un empleado que pertenece a esta Sede no tiene turno explícito asignado en sus legajos, usaremos este como default.
+                                </p>
+                            </div>
 
                             <div className="flex gap-3 pt-4 border-t border-slate-700/50 mt-6">
                                 <button type="button" onClick={() => setShowSedeModal(false)} className="flex-1 px-4 py-2.5 bg-slate-800 text-slate-300 font-medium rounded-lg hover:bg-slate-700 transition">Cancelar</button>
@@ -326,8 +411,8 @@ const SedesDispositivosPage = () => {
 
             {/* MODAL DISPOSITIVO */}
             {showDispositivoModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-                    <div className="bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden relative">
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in">
+                    <div className="bg-slate-900 border border-slate-700/50 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg overflow-hidden relative animate-in slide-in-from-bottom sm:zoom-in duration-300">
                         <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 flex justify-between items-center">
                             <h2 className="text-xl font-bold text-white flex items-center gap-2">
                                 <Server size={20} />
@@ -337,7 +422,7 @@ const SedesDispositivosPage = () => {
                                 <X size={20} />
                             </button>
                         </div>
-                        <form onSubmit={handleSaveDispositivo} className="p-6 space-y-4">
+                        <form onSubmit={handleSaveDispositivo} className="p-4 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
                                     <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">ID Hardware (UUID / MAC)</label>

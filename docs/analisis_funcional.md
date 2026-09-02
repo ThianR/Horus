@@ -1,9 +1,9 @@
-# Análisis Funcional - Sistema Oculus
+# Análisis Funcional - Sistema Horus
 
-Este documento detalla las reglas de negocio, flujos y arquitectura funcional del sistema de control de asistencia biométrica **Oculus**.
+Este documento detalla las reglas de negocio, flujos y arquitectura funcional del sistema de control de asistencia biométrica **Horus**.
 
 ## 1. Descripción General
-Oculus es una solución para el control de asistencia en empresas con múltiples sedes. Su principal valor reside en la capacidad de registrar asistencias de forma biométrica (reconocimiento facial) sin necesidad de una conexión permanente a internet en los puntos de registro (kioscos).
+Horus es una solución para el control de asistencia en empresas con múltiples sedes. Su principal valor reside en la capacidad de registrar asistencias de forma biométrica (reconocimiento facial) sin necesidad de una conexión permanente a internet en los puntos de registro (kioscos).
 
 ## 2. Reglas de Negocio Principales
 

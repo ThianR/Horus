@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from './api';
 
 export interface ConfiguracionSede {
     toleranciaEntradaMinutos?: number;
@@ -15,6 +15,13 @@ export interface Sede {
     configuracionJson?: string;
     versionEmbeddings?: number;
     createdAt?: string;
+    turnoDefecto?: {
+        id: number;
+        nombre: string;
+        codigo: string;
+    };
+    diasTurnoDefecto?: string;
+    turnoDefectoId?: number | null; // For form usage
 }
 
 export interface Dispositivo {
@@ -31,48 +38,50 @@ export interface Dispositivo {
     lastHeartbeat?: string;
 }
 
-const API_URL = '/api/sedes';
-
 export const sedeService = {
-    getAll: async (): Promise<Sede[]> => {
-        const response = await axios.get(API_URL);
+    getAll: async (empresaId?: number): Promise<Sede[]> => {
+        const response = await api.get('/sedes', { params: { empresaId } });
         return response.data;
     },
     getById: async (id: number): Promise<Sede> => {
-        const response = await axios.get(`${API_URL}/${id}`);
+        const response = await api.get(`/sedes/${id}`);
         return response.data;
     },
     create: async (sede: Partial<Sede>): Promise<Sede> => {
-        const response = await axios.post(API_URL, sede);
+        const response = await api.post('/sedes', sede);
         return response.data;
     },
     update: async (id: number, sede: Partial<Sede>): Promise<Sede> => {
-        const response = await axios.put(`${API_URL}/${id}`, sede);
+        const response = await api.put(`/sedes/${id}`, sede);
+        return response.data;
+    },
+    asignarTurnoDefecto: async (id: number, turnoDefectoId: number | null, diasTurnoDefecto?: string): Promise<Sede> => {
+        const response = await api.put(`/sedes/${id}/turno-defecto`, { turnoDefectoId, diasTurnoDefecto });
         return response.data;
     },
     delete: async (id: number): Promise<void> => {
-        await axios.delete(`${API_URL}/${id}`);
+        await api.delete(`/sedes/${id}`);
     },
     getDispositivosSede: async (sedeId: number): Promise<Dispositivo[]> => {
-        const response = await axios.get(`${API_URL}/${sedeId}/dispositivos`);
+        const response = await api.get(`/sedes/${sedeId}/dispositivos`);
         return response.data;
     },
     addDispositivoSede: async (sedeId: number, dispositivo: Partial<Dispositivo>): Promise<Dispositivo> => {
-        const response = await axios.post(`${API_URL}/${sedeId}/dispositivos`, dispositivo);
+        const response = await api.post(`/sedes/${sedeId}/dispositivos`, dispositivo);
         return response.data;
     }
 };
 
 export const dispositivoService = {
     getAll: async (): Promise<Dispositivo[]> => {
-        const response = await axios.get('/api/dispositivos');
+        const response = await api.get('/dispositivos');
         return response.data;
     },
     update: async (id: number, dispositivo: Partial<Dispositivo>): Promise<Dispositivo> => {
-        const response = await axios.put(`/api/dispositivos/${id}`, dispositivo);
+        const response = await api.put(`/dispositivos/${id}`, dispositivo);
         return response.data;
     },
     delete: async (id: number): Promise<void> => {
-        await axios.delete(`/api/dispositivos/${id}`);
+        await api.delete(`/dispositivos/${id}`);
     }
 };

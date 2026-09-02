@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Users, Clock, AlertCircle, CheckCircle2, Search, ArrowUpRight, Activity, Calendar } from 'lucide-react';
 import { dashboardService, DashboardStats, EventoReciente, AsistenciaHoy } from '../services/dashboardService';
+import { authService } from '../services/authService';
+import { useOnboarding } from '../contexts/OnboardingContext';
 
 const DashboardPage = () => {
     const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -8,6 +10,7 @@ const DashboardPage = () => {
     const [asistencias, setAsistencias] = useState<AsistenciaHoy[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const { startTour } = useOnboarding();
 
     useEffect(() => {
         cargarDatos();
@@ -15,6 +18,17 @@ const DashboardPage = () => {
         const interval = setInterval(cargarDatos, 30000);
         return () => clearInterval(interval);
     }, []);
+
+    useEffect(() => {
+        authService.getCurrentUser().then(user => {
+            if (!user.tourCompletado) {
+                // Pequeño timeout para asegurar que el DOM está listo
+                setTimeout(() => {
+                    startTour();
+                }, 500);
+            }
+        }).catch(e => console.error("Error al obtener usuario:", e));
+    }, [startTour]);
 
     const cargarDatos = async () => {
         try {
@@ -131,7 +145,7 @@ const DashboardPage = () => {
                                 <input
                                     type="text"
                                     placeholder="Filtrar empleados..."
-                                    className="w-full pl-10 pr-4 py-2 bg-slate-900/50 border border-slate-700/50 rounded-xl text-xs outline-none focus:border-blue-500 text-white"
+                                    className="w-full pl-10 pr-4 py-2 bg-slate-900/50 border border-slate-700/50 rounded-xl text-xs outline-none focus:border-blue-500 text-white !pl-10"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
@@ -169,8 +183,8 @@ const DashboardPage = () => {
                                                 <td className="px-4 py-4 font-mono text-xs text-slate-400">{formatTime(a.horaSalidaReal)}</td>
                                                 <td className="px-4 py-4">
                                                     <span className={`px-2 py-1 rounded-md text-[10px] font-bold ${a.estadoAsistencia === 'NORMAL' ? 'bg-emerald-500/10 text-emerald-400' :
-                                                            a.estadoAsistencia === 'TARDANZA' ? 'bg-amber-500/10 text-amber-400' :
-                                                                'bg-rose-500/10 text-rose-400'
+                                                        a.estadoAsistencia === 'TARDANZA' ? 'bg-amber-500/10 text-amber-400' :
+                                                            'bg-rose-500/10 text-rose-400'
                                                         }`}>
                                                         {a.estadoAsistencia}
                                                     </span>

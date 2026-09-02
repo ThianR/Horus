@@ -1,5 +1,5 @@
 {
-  "name": "oculus-frontend",
+  "name": "horus-frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,15 +11,20 @@
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.2.1",
+    "@tensorflow-models/blazeface": "^0.1.0",
+    "@tensorflow/tfjs": "^4.22.0",
     "axios": "^1.6.2",
+    "driver.js": "^1.4.0",
     "lucide-react": "^0.294.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.21.1"
+    "react-router-dom": "^6.21.1",
+    "sonner": "^2.0.7"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-basic-ssl": "^1.1.0",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.24",
     "postcss": "^8.5.6",

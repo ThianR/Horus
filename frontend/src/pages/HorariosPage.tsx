@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react';
 import { Plus, Search, Clock, Edit2, Trash2, CalendarCheck } from 'lucide-react';
 import { turnoService, TurnoPlantilla } from '../services/turnoService';
 import TurnoForm from '../components/TurnoForm';
+import { useConfirm } from '../contexts/ConfirmContext';
+import { toast } from 'sonner';
 
 const HorariosPage = () => {
+    const { confirm } = useConfirm();
     const [turnos, setTurnos] = useState<TurnoPlantilla[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -75,7 +78,7 @@ const HorariosPage = () => {
                     <input
                         type="text"
                         placeholder="Buscar por nombre o código..."
-                        className="w-full pl-12 pr-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-xl focus:border-blue-500 transition-all outline-none text-white"
+                        className="w-full pl-12 pr-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-xl focus:border-blue-500 transition-all outline-none text-white !pl-12"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -126,8 +129,8 @@ const HorariosPage = () => {
                                         </td>
                                         <td className="px-4 py-4">
                                             <span className={`px-2 py-1 rounded-md text-xs font-bold ${turno.tipoTurno === 'FIJO' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                    turno.tipoTurno === 'FLEXIBLE' ? 'bg-purple-500/20 text-purple-400' :
-                                                        'bg-amber-500/20 text-amber-400'
+                                                turno.tipoTurno === 'FLEXIBLE' ? 'bg-purple-500/20 text-purple-400' :
+                                                    'bg-amber-500/20 text-amber-400'
                                                 }`}>
                                                 {turno.tipoTurno}
                                             </span>
@@ -157,9 +160,14 @@ const HorariosPage = () => {
                                                 </button>
                                                 <button
                                                     onClick={async () => {
-                                                        if (confirm('¿Eliminar esta plantilla de turno?')) {
-                                                            await turnoService.eliminar(turno.id!);
-                                                            cargarTurnos();
+                                                        if (await confirm({ message: '¿Eliminar esta plantilla de turno?', type: 'danger' })) {
+                                                            try {
+                                                                await turnoService.eliminar(turno.id!);
+                                                                toast.success('Plantilla de turno eliminada');
+                                                                cargarTurnos();
+                                                            } catch (error: any) {
+                                                                toast.error(error.response?.data?.mensaje || 'Error al eliminar la plantilla de turno');
+                                                            }
                                                         }
                                                     }}
                                                     className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"

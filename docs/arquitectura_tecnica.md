@@ -1,12 +1,12 @@
-# Arquitectura Técnica - Sistema Oculus
+# Arquitectura Técnica - Sistema Horus
 
-Este documento detalla la estructura técnica, componentes y decisiones de diseño implementadas en el backend de **Oculus**.
+Este documento detalla la estructura técnica, componentes y decisiones de diseño implementadas en el backend de **Horus**.
 
 ## 1. Stack Tecnológico
 - **Java 17**: Uso de records, switch expressions y APIs modernas.
 - **Spring Boot 3.2**: Framework base.
 - **Spring Data JPA**: Abstracción de persistencia.
-- **H2 Database**: Base de datos SQL embebida (configurada en modo persistente en `./data/oculus_db`).
+- **SQLite**: Base de datos SQL embebida (configurada en modo persistente en `../data/horus_db.db`).
 - **Flyway**: Gestión de migraciones de esquema.
 - **Lombok**: Reducción de código boilerplate (getters, setters, constructores).
 
@@ -14,7 +14,7 @@ Este documento detalla la estructura técnica, componentes y decisiones de dise�
 El proyecto adopta un enfoque modular basado en paquetes internos. Cada paquete principal actúa como un módulo funcional con su propia lógica de persistencia y servicio.
 
 ```text
-com.oculus.asistencia
+com.horus.asistencia
 ├── biometria     # Stubs faciales, limpieza de fotos antiguos
 ├── identidad     # Usuarios, roles, seguridad
 ├── marcas        # Registro crudo de eventos (MarcacionEvento)

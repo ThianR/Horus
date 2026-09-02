@@ -1,6 +1,6 @@
-# Roadmap de Desarrollo - Proyecto Oculus
+# Roadmap de Desarrollo - Proyecto Horus
 
-Este documento traza la ruta evolutiva del sistema **Oculus**, desde su estado actual de MVP técnico hacia una solución robusta de nivel empresarial.
+Este documento traza la ruta evolutiva del sistema **Horus**, desde su estado actual de MVP técnico hacia una solución robusta de nivel empresarial.
 
 ## Fase 1: Consolidación del Core e Interfaz Web (Próximo paso)
 **Objetivo**: Transformar el motor técnico en una herramienta usable.
@@ -30,7 +30,7 @@ Este documento traza la ruta evolutiva del sistema **Oculus**, desde su estado a
 
 ## Fase 4: Escalamiento y Alta Disponibilidad
 **Objetivo**: Preparar el sistema para miles de empleados y sedes.
-- [ ] **Migración a PostgreSQL**: Transición de H2 (embebida) a una base de datos de alto rendimiento.
+- [ ] **Migración a PostgreSQL**: Transición de SQLite (embebida) a una base de datos de alto rendimiento.
 - [ ] **Dockerización**: Containerización de módulos para despliegue simplificado en servidores de sede y nube.
 - [ ] **Motor de Reportes Avanzado**: Generación programada de reportes con envío automático por email (JasperReports o similar).
 - [ ] **Audit Log Detallado**: Registro inmutable de cambios en configuraciones y marcaciones manuales.
