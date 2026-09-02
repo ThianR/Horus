@@ -3,27 +3,35 @@
 Sistema de gestión de asistencia con soporte para marca biométrica, operación offline y sincronización inteligente.
 Desarrollado en Java + Spring Boot 3 con arquitectura modular.
 
+**Repositorio oficial:** [https://github.com/ThianR/Horus.git](https://github.com/ThianR/Horus.git)
+
 ## Requisitos Previos
-- **Java 17** o superior instalado.
-- **Maven** (opcional, wrapper incluido).
+- **Java 21** instalado.
+- **Maven 3.8+** (configurado en el path).
+- **Node.js** (para el frontend Vite).
+- **Python 3.10+** (para el microservicio de biometría).
 
 ## Estructura del Proyecto
-- `backend/`: Código fuente del servidor API REST.
-- `backend/src/main/resources/db/migration`: Scripts SQL de base de datos (Flyway).
-- `data/`: Base de datos local SQLite (se crea automáticamente).
+- `frontend/`: Cliente web SPA desarrollado con Vite.
+- `backend/`: Servidor API REST (Spring Boot 3 + Java 21).
+- `python-service/`: Microservicio de reconocimiento facial (FastAPI + DeepFace).
+- `data/`: Base de datos local SQLite (se genera automáticamente).
 
-## Cómo Ejecutar
+## Cómo Ejecutar (Full Stack)
 
-### Backend
-1. Abrir terminal en la raíz del proyecto.
-2. Ejecutar el script por lotes que inicializa las variables de Java 21:
+La forma más sencilla de ejecutar todo el ecosistema es utilizar el script de arranque principal ubicado en la raíz del proyecto. Este script levantará el Frontend, el motor de Inteligencia Artificial y el Backend en paralelo.
+
+1. Abrir una terminal en la raíz del proyecto.
+2. Copiar el archivo `.env.example` como `.env` y configurar los valores requeridos.
+3. Ejecutar el script por lotes:
    ```bash
-   .\ejecutar_backend.bat
+   .\ejecutar_sistema.bat
    ```
-   *⚠️ Nota Crítica de Entorno: No uses `mvn spring-boot:run` directamente en la terminal si tu `JAVA_HOME` global está apuntando a Java 8 (NetBeans 8), ya que fallará la compilación. El script resolvió las rutas localmente para usar el JDK-21 y Maven 3.8.8 internos.*
 
-3. La API estará disponible en `http://localhost:8000`.
-   - Swagger/OpenAPI (si habilitado): `http://localhost:8080/swagger-ui.html`
+Una vez que el script finalice de levantar los servicios, el sistema estará disponible en:
+- **Frontend (Web):** `http://localhost:5173`
+- **Backend (API):** `http://localhost:8000`
+- **Biometría (IA Swagger):** `http://localhost:8001/docs`
 
 ## Documentación de Endpoints Principales
 
@@ -33,17 +41,17 @@ Desarrollado en Java + Spring Boot 3 con arquitectura modular.
 - **GET** `/api/sincronizacion/descargar-cambios`
   - Descarga empleados y configuraciones para actualizar el kiosco offline.
 
-### Marcaciones
+### Biometría y Marcaciones
 - **POST** `/api/marcaciones/registrar`
   - Registra una marcación individual (online).
+- **POST** `http://localhost:8001/api/v1/extract` *(Python Service)*
+  - Extrae el vector de características faciales (embedding) de una imagen.
 
 ### Reportes
 - **GET** `/api/reportes/asistencia.csv`
   - Descarga el reporte histórico de asistencias.
 
-## Configuración
-La configuración principal está en `backend/src/main/resources/application.properties`.
-Por defecto usa SQLite en modo archivo: `./data/horus_db.db`.
-
-## Scripts Útiles
-- `ejecutar_backend.bat`: Script para iniciar el servidor en Windows.
+## Configuración y Base de Datos
+- Las variables de entorno globales se leen desde el `.env` en la raíz (recomendado para desarrollo).
+- La configuración específica de Spring Boot está en `backend/src/main/resources/application.properties`.
+- Por defecto se utiliza SQLite en modo archivo con persistencia en: `./data/horus_db.db`.
